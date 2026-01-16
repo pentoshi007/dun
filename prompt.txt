@@ -1,0 +1,39 @@
+You will be given a 5-day campus interview plan for the role “Associate Applied Data Scientist (dunnhumby)”. Your task: generate five separate, fully detailed Markdown files (one per day). Each file must be a self-contained study chapter that a candidate can follow and practice from, covering concepts, runnable code, solved questions, diagrams, memory hooks, pitfalls, and a short practice checklist.
+Important: every code block must include detailed inline comments and be followed immediately by a plain-English explanation that walks through what the code does (line-by-line for key lines). Do not assume the reader will infer the meaning—explain it.
+Output format requirements (strict)
+* Output plain text. Separate the five files by clear file markers so a human can split them into files. Use this exact separator format before each file: === FILE: Day X - <Short Title>.md === For example: === FILE: Day 1 - SQL (The Gatekeeper).md ===
+* Each file must be valid Markdown and include these sections (in order):
+    1. Title (H1) and one-line objective.
+    2. Time budget (recommended hours for that day and micro time blocks).
+    3. Exact list of topics (as short named bullets) that will be taught.
+    4. For each topic:
+        * A short plain-English explanation (2–6 sentences).
+        * A step-by-step learning checklist (concrete actions to do, e.g., run X query, type Y code).
+        * One or two short, memorable “what to say in interview” lines (1–2 sentences).
+        * Common pitfalls and how to avoid them (bulleted).
+        * Small practice problems (2–4), listed and then solved immediately below with full code/SQL and step-by-step explanation. Solutions must show intermediate steps and final answer.
+        * If code: include runnable code blocks with detailed inline comments and then include a short paragraph immediately after the code that explains the code operation line-by-line (or at least explains each logical block). Use Python 3 (pandas, scikit-learn) and standard SQL dialect (ANSI SQL) examples.
+        * Use mermaid diagrams only where they clarify process or data flow (e.g., experiment design, join logic, pipeline flow). When used, include the mermaid code block and a short caption.
+    5. Quick memorization list: 6–12 items to memorize that day (formulas, function names, single-sentence definitions).
+    6. End-of-day mock interview: 5 real interview questions (mix of coding, short answer, case), plus model answers (concise and interview-friendly).
+    7. “If you only have 60 minutes” – a 1-hour sprint plan (exact exercises to maximize score).
+    8. Short 1-page cheat sheet (compact bullet list; can be repeated across files if needed).
+Code & explanation rules (explicit)
+* Every code block must contain clear inline comments explaining each non-trivial line or block. Comments should describe why you do something, not just what.
+* Immediately after each code block, include a short plain-English paragraph (or numbered lines) that walks through the code step-by-step, mapping comments to code actions. This is required for SQL and Python.
+* For SQL examples: provide a sample schema and 4–8 sample rows (as a small table) before running the query. After the query, show the expected result table produced by that query on the sample data and explain how each row/column came to be.
+* For pandas examples: create a tiny pd.DataFrame(...) inline, show the DataFrame, then show transformations and their outputs step-by-step. Include import lines and set any randomness seeds.
+* For ML snippets: keep datasets tiny and deterministic (random_state=0). Show train/test split, training, evaluation, and interpret results. Comment code explaining each choice (metric, parameter).
+* For arithmetic or statistical calculations, compute digit-by-digit so no mental math is assumed (explicitly show each operation).
+Output content requirements (complete coverage)
+* Solve every question found in the input plan for that day (e.g., “Top 3 products per store”, “RFM segmentation”, “Product X dropped 30%”). Provide working code/SQL and explain results.
+* For case prompts give a full structured approach: clarifying questions, data required, analysis steps (with example queries/code), recommendation, and measurement plan (how to validate with A/B or holdout). Include a mermaid flow diagram for the analysis pipeline where helpful.
+* Include at least 2 mermaid diagrams across the whole output (only where useful) and explain each.
+Formatting, length & deliverables
+* Each day file should be detailed but focused: roughly 1500–3500 words per day, with plenty of code blocks and small tables.
+* Produce all five day sections in one output, separated by the === FILE: ... === headers, so the user can directly copy each into its own .md file.
+* The AI must include the explicit statement at the top of each generated file (below the H1) that: “All code blocks include detailed inline comments and are followed by a line-by-line plain-English explanation.”
+Style & tone
+* Simple, confident, human tone. Teach as if to a smart peer. Use short memory hooks and mnemonics.
+* Show the interview-caliber thought process before code: how to clarify the prompt, what assumptions you’d state, and the high-level approach. Then execute.
+create a status file to show which day work has been completed and just create one and ask me for the next. push to github after creating each:https://github.com/pentoshi007/dun.git
