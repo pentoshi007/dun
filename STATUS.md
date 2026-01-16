@@ -4,7 +4,7 @@
 | Day | Topic | Status | Created |
 |-----|-------|--------|---------|
 | 1 | SQL (The Gatekeeper) | ✅ Completed | 2026-01-16 |
-| 2 | Python & Pandas (Data Wrangling) | ⏳ Pending | - |
+| 2 | Python & Pandas (Data Wrangling) | ✅ Completed | 2026-01-16 |
 | 3 | Statistics & Probability | ⏳ Pending | - |
 | 4 | Machine Learning Fundamentals | ⏳ Pending | - |
 | 5 | Case Studies & Business Sense | ⏳ Pending | - |
