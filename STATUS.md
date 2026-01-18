@@ -5,7 +5,7 @@
 |-----|-------|--------|---------|
 | 1 | SQL (The Gatekeeper) | ✅ Completed | 2026-01-16 |
 | 2 | Python & Pandas (Data Wrangling) | ✅ Completed | 2026-01-16 |
-| 3 | Statistics & Probability | ⏳ Pending | - |
+| 3 | Statistics & Probability | ✅ Completed | 2026-01-18 |
 | 4 | Machine Learning Fundamentals | ⏳ Pending | - |
 | 5 | Case Studies & Business Sense | ⏳ Pending | - |
 
@@ -15,4 +15,4 @@
 - ⏳ Pending
 
 ---
-*Last Updated: 2026-01-16*
+*Last Updated: 2026-01-18*
