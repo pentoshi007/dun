@@ -30,954 +30,1423 @@
 
 ---
 
-## Topic 1: Descriptive Statistics
+# Topic 1: Descriptive Statistics
 
-### Plain-English Explanation
-Descriptive statistics summarize data using numbers. **Central tendency** tells you "where's the middle?" (mean, median, mode). **Spread** tells you "how scattered?" (variance, standard deviation, IQR). For retail: average basket size is central tendency; variation in basket size is spread.
+## What is Descriptive Statistics? (Theory Deep Dive)
 
-Memory hook: **"Central tendency = the typical value. Spread = how typical is typical?"**
+**Descriptive statistics** is the branch of statistics that helps us **summarize and describe** the main features of a dataset. Think of it as creating a "summary report" of your data.
 
-### Step-by-Step Learning Checklist
-- [ ] Calculate mean, median, mode by hand and with pandas
-- [ ] Calculate variance and standard deviation
-- [ ] Identify when to use mean vs median (skewed data)
-- [ ] Calculate percentiles and IQR
+### Why Do We Need Descriptive Statistics?
 
-### What to Say in Interview
-> "I use median for skewed data like income or transaction values because outliers don't distort it. Mean is better when data is symmetric."
+Imagine you have transaction data for 10 million customers. You can't look at every number! Descriptive statistics gives you:
+- **One number** to represent the "typical" value (central tendency)
+- **One number** to represent how "spread out" the data is (dispersion)
+- **A few numbers** to understand the shape and range (distribution)
 
-### Common Pitfalls
-- **Pitfall:** Using mean on skewed data → **Fix:** Use median; always check distribution shape
-- **Pitfall:** Confusing population vs sample formulas → **Fix:** Sample uses n-1 (Bessel's correction)
-- **Pitfall:** Ignoring outliers → **Fix:** Check for outliers with IQR method: < Q1-1.5×IQR or > Q3+1.5×IQR
+### The Two Pillars of Descriptive Statistics
 
-### Formulas to Memorize
-
-| Statistic | Formula | Notes |
-|-----------|---------|-------|
-| Mean | $\bar{x} = \frac{\sum x_i}{n}$ | Sum divided by count |
-| Variance (sample) | $s^2 = \frac{\sum (x_i - \bar{x})^2}{n-1}$ | Average squared deviation |
-| Std Dev (sample) | $s = \sqrt{s^2}$ | Square root of variance |
-| IQR | $Q3 - Q1$ | Middle 50% spread |
-
-### Practice Problem 1.1: Calculate Descriptive Stats
-
-**Problem:** Given customer transaction values, calculate all descriptive statistics.
-
-**Sample Data:** Transaction values: [25, 30, 35, 40, 45, 50, 150]
-
-```python
-import pandas as pd
-import numpy as np
-
-# Create a Series of transaction values
-# Note: 150 is an outlier - this affects mean vs median comparison
-transactions = pd.Series([25, 30, 35, 40, 45, 50, 150])
-
-# === CENTRAL TENDENCY ===
-
-# Mean: sum of all values divided by count
-# Mean = (25+30+35+40+45+50+150) / 7 = 375 / 7 = 53.57
-mean_val = transactions.mean()
-print(f"Mean: {mean_val:.2f}")
-
-# Median: middle value when sorted (here: 40, the 4th of 7 values)
-# For even count: average of two middle values
-median_val = transactions.median()
-print(f"Median: {median_val:.2f}")
-
-# Mode: most frequent value (here: all occur once, so shows first)
-# For transaction data, mode is often less useful
-mode_val = transactions.mode()
-print(f"Mode: {mode_val.values}")
-
-# === SPREAD ===
-
-# Variance (sample): average squared deviation from mean
-# Using n-1 (default in pandas) for sample variance
-variance_val = transactions.var()  # ddof=1 is default (sample variance)
-print(f"Variance (sample): {variance_val:.2f}")
-
-# Population variance uses n instead of n-1
-variance_pop = transactions.var(ddof=0)
-print(f"Variance (population): {variance_pop:.2f}")
-
-# Standard Deviation: square root of variance
-# Interpretation: "typical distance from the mean"
-std_val = transactions.std()
-print(f"Std Dev (sample): {std_val:.2f}")
-
-# Range: max - min (simple but sensitive to outliers)
-range_val = transactions.max() - transactions.min()
-print(f"Range: {range_val}")
-
-# === PERCENTILES AND IQR ===
-
-# Percentiles: value below which X% of data falls
-q1 = transactions.quantile(0.25)  # 25th percentile
-q2 = transactions.quantile(0.50)  # 50th percentile (= median)
-q3 = transactions.quantile(0.75)  # 75th percentile
-print(f"\nQ1 (25th): {q1}")
-print(f"Q2 (50th): {q2}")
-print(f"Q3 (75th): {q3}")
-
-# IQR: Interquartile Range = Q3 - Q1
-# Measures spread of middle 50% of data
-iqr = q3 - q1
-print(f"IQR: {iqr}")
-
-# === OUTLIER DETECTION ===
-
-# IQR method: outliers are < Q1 - 1.5*IQR or > Q3 + 1.5*IQR
-lower_bound = q1 - 1.5 * iqr
-upper_bound = q3 + 1.5 * iqr
-print(f"\nOutlier bounds: ({lower_bound:.2f}, {upper_bound:.2f})")
-
-# Identify outliers
-outliers = transactions[(transactions < lower_bound) | (transactions > upper_bound)]
-print(f"Outliers: {outliers.values}")
-
-# === DESCRIBE() FOR QUICK SUMMARY ===
-print("\n=== describe() output ===")
-print(transactions.describe())
 ```
-
-**Line-by-line Explanation:**
-
-1. `pd.Series([25, 30, ...])` — Create a 1D array with index. Series is the building block of DataFrames.
-
-2. `transactions.mean()` — Calculates arithmetic mean: sum(375) / count(7) = 53.57. Notice the outlier (150) pulls the mean up.
-
-3. `transactions.median()` — Sorts values and returns the middle one. Here: 25, 30, 35, **40**, 45, 50, 150. Median = 40.
-
-4. `transactions.var()` — Sample variance using n-1 denominator. Each value's squared distance from mean, averaged.
-
-5. `transactions.var(ddof=0)` — Population variance using n denominator. `ddof` = degrees of freedom to subtract.
-
-6. `transactions.quantile(0.25)` — Returns the value where 25% of data is below. "Q1" in boxplot terms.
-
-7. `q3 - q1` — IQR captures the middle 50% spread, robust to outliers.
-
-8. `lower_bound = q1 - 1.5 * iqr` — Standard outlier detection. Values beyond these bounds are flagged.
-
-**Key Insight:** Mean (53.57) vs Median (40) shows the outlier's effect. In interviews, always mention checking for skewness when asked about averages.
-
-### Practice Problem 1.2: Coefficient of Variation
-
-**Problem:** Compare variability between two products with different price scales.
-
-```python
-import pandas as pd
-
-# Two products with different price scales
-product_a = pd.Series([10, 12, 11, 13, 9])      # Low-priced: mean ~11
-product_b = pd.Series([100, 120, 110, 130, 90]) # High-priced: mean ~110
-
-# Standard deviation alone is misleading for comparison
-std_a = product_a.std()
-std_b = product_b.std()
-print(f"Product A Std Dev: {std_a:.2f}")
-print(f"Product B Std Dev: {std_b:.2f}")
-# B has higher std, but is it more "variable" relative to its scale?
-
-# Coefficient of Variation (CV) = std / mean
-# Expressed as percentage - allows comparing different scales
-cv_a = (product_a.std() / product_a.mean()) * 100
-cv_b = (product_b.std() / product_b.mean()) * 100
-print(f"\nProduct A CV: {cv_a:.2f}%")
-print(f"Product B CV: {cv_b:.2f}%")
-# Same CV (14.49%) - both have same RELATIVE variability
+Descriptive Statistics
+├── 1. Central Tendency (Where is the "center" of the data?)
+│   ├── Mean (arithmetic average)
+│   ├── Median (middle value)
+│   └── Mode (most frequent value)
+│
+└── 2. Dispersion/Spread (How spread out is the data?)
+    ├── Range (max - min)
+    ├── Variance (average squared distance from mean)
+    ├── Standard Deviation (square root of variance)
+    └── IQR - Interquartile Range (middle 50% spread)
 ```
-
-**Explanation:** Coefficient of Variation normalizes standard deviation by the mean, allowing comparison across different scales. Both products have ~14.5% CV, meaning their relative variability is identical despite Product B having 10x higher absolute std dev.
 
 ---
 
-## Topic 2: Probability Fundamentals
+## 1.1 Central Tendency: Mean, Median, Mode
 
-### Plain-English Explanation
-Probability quantifies uncertainty. **Basic probability** = favorable outcomes / total outcomes. **Conditional probability** asks "what's the probability of A given B already happened?" **Bayes' theorem** flips conditional probabilities—crucial for updating beliefs with new data.
+### The Mean (Arithmetic Average)
 
-Memory hook: **"P(A|B) = probability of A after we know B happened"**
+**What is it?** The mean is the sum of all values divided by the count of values.
 
-### Step-by-Step Learning Checklist
-- [ ] Calculate simple probabilities from data
-- [ ] Apply the addition rule (P(A or B))
-- [ ] Apply the multiplication rule (P(A and B))
-- [ ] Calculate conditional probabilities
-- [ ] Apply Bayes' theorem
+**Formula:**
+$$\bar{x} = \frac{\sum_{i=1}^{n} x_i}{n} = \frac{x_1 + x_2 + x_3 + ... + x_n}{n}$$
 
-### What to Say in Interview
-> "Bayes' theorem lets me update my probability estimate when I learn new information. For example, if a customer converts, I update my belief about which marketing channel influenced them."
+**Symbol meanings:**
+- $\bar{x}$ (x-bar) = the mean (for sample data)
+- $\mu$ (mu) = the mean (for population data)
+- $\sum$ = "sum of" (add up everything)
+- $n$ = count of values
 
-### Common Pitfalls
-- **Pitfall:** Adding probabilities when events overlap → **Fix:** Use P(A or B) = P(A) + P(B) - P(A and B)
-- **Pitfall:** Assuming independence when events are related → **Fix:** Check if P(A|B) = P(A)
-- **Pitfall:** Confusing P(A|B) with P(B|A) → **Fix:** These are different! Use Bayes to flip
+**Step-by-step example:**
 
-### Key Formulas
+Transaction values: [20, 30, 40, 50, 60]
 
-| Rule | Formula | When to Use |
-|------|---------|-------------|
-| Addition (mutually exclusive) | P(A or B) = P(A) + P(B) | Events can't both happen |
-| Addition (general) | P(A or B) = P(A) + P(B) - P(A and B) | Events can overlap |
-| Multiplication (independent) | P(A and B) = P(A) × P(B) | Events don't affect each other |
-| Multiplication (dependent) | P(A and B) = P(A) × P(B\|A) | Events are related |
-| Conditional | P(A\|B) = P(A and B) / P(B) | Probability after knowing B |
-| Bayes | P(A\|B) = P(B\|A) × P(A) / P(B) | Flip conditional probabilities |
+```
+Step 1: Add all values
+        20 + 30 + 40 + 50 + 60 = 200
 
-### Practice Problem 2.1: Customer Segmentation Probability
+Step 2: Count the values
+        n = 5
 
-**Problem:** Given customer data, calculate various probabilities.
+Step 3: Divide sum by count
+        Mean = 200 ÷ 5 = 40
+```
 
-**Sample Data:**
-| Segment | Churn | No Churn | Total |
-|---------|-------|----------|-------|
+**When to use mean:** When data is roughly symmetric (no extreme outliers).
+
+**Problem with mean:** It's sensitive to outliers!
+
+Example: Salaries [30K, 35K, 40K, 45K, 500K]
+- Mean = (30 + 35 + 40 + 45 + 500) ÷ 5 = 650 ÷ 5 = **130K** ❌ (misleading!)
+- Most people earn around 40K, but one CEO inflates the average.
+
+---
+
+### The Median (Middle Value)
+
+**What is it?** The median is the middle value when data is sorted in order.
+
+**How to find it:**
+1. Sort the data from smallest to largest
+2. If odd count: pick the middle value
+3. If even count: average the two middle values
+
+**Step-by-step example (odd count):**
+
+Transaction values: [60, 20, 40, 30, 50]
+
+```
+Step 1: Sort the data
+        [20, 30, 40, 50, 60]
+
+Step 2: Find the middle position
+        Position = (n + 1) ÷ 2 = (5 + 1) ÷ 2 = 3rd position
+
+Step 3: The 3rd value is 40
+        Median = 40
+```
+
+**Step-by-step example (even count):**
+
+Transaction values: [60, 20, 40, 30]
+
+```
+Step 1: Sort the data
+        [20, 30, 40, 60]
+
+Step 2: Find the two middle positions
+        Positions = n÷2 and (n÷2)+1 = 2nd and 3rd positions
+        Values at these positions: 30 and 40
+
+Step 3: Average them
+        Median = (30 + 40) ÷ 2 = 35
+```
+
+**When to use median:** When data has outliers or is skewed (like income, house prices).
+
+**Back to our salary example:** [30K, 35K, 40K, 45K, 500K]
+- Median = 40K ✅ (much more representative!)
+
+---
+
+### The Mode (Most Frequent Value)
+
+**What is it?** The mode is the value that appears most often.
+
+**Example:**
+
+Customer ratings: [5, 4, 5, 3, 5, 4, 5, 2, 5]
+
+```
+Count each value:
+- 5 appears: 5 times ← Most frequent!
+- 4 appears: 2 times
+- 3 appears: 1 time
+- 2 appears: 1 time
+
+Mode = 5
+```
+
+**Note:** Data can have:
+- **One mode** (unimodal): [1, 2, 2, 3] → mode = 2
+- **Two modes** (bimodal): [1, 1, 2, 3, 3] → modes = 1 and 3
+- **No mode**: [1, 2, 3, 4] → all appear once
+
+**When to use mode:** For categorical data (like "most common product category").
+
+---
+
+### Mean vs Median: The Key Decision
+
+| Situation | Use | Why |
+|-----------|-----|-----|
+| Symmetric data (bell-shaped) | Mean | Mean = Median, either works |
+| Skewed data / Outliers | Median | Mean gets pulled toward outliers |
+| Comparing to "typical" customer | Median | More representative |
+| Calculating totals | Mean | Mean × n = Total |
+
+**Interview Tip:** "If mean and median are very different, that signals skewed data. I always check both."
+
+---
+
+## 1.2 Dispersion: Variance and Standard Deviation
+
+### Why Measure Spread?
+
+Two datasets can have the same mean but very different spreads:
+
+```
+Dataset A: [48, 49, 50, 51, 52]  → Mean = 50, Data is clustered
+Dataset B: [10, 30, 50, 70, 90]  → Mean = 50, Data is spread out
+```
+
+Knowing only the mean (50) doesn't tell us if customers spend consistently or wildly differently!
+
+---
+
+### Range (Simplest Measure)
+
+**Formula:** Range = Maximum - Minimum
+
+**Example:** [10, 30, 50, 70, 90]
+- Range = 90 - 10 = 80
+
+**Problem:** Range only uses 2 values—one outlier ruins it!
+
+---
+
+### Variance (Average Squared Distance from Mean)
+
+**What is it?** Variance measures how far each value is from the mean, on average.
+
+**Why squared?** 
+- Distances can be positive or negative (above or below mean)
+- If we just average them, positives and negatives cancel out to zero!
+- Squaring makes all distances positive
+
+**Population Variance Formula:**
+$$\sigma^2 = \frac{\sum_{i=1}^{n} (x_i - \mu)^2}{n}$$
+
+**Sample Variance Formula (Bessel's Correction):**
+$$s^2 = \frac{\sum_{i=1}^{n} (x_i - \bar{x})^2}{n-1}$$
+
+**Why n-1 for samples?** When we estimate from a sample, we "use up" one degree of freedom estimating the mean. Dividing by n-1 corrects for this bias.
+
+**Step-by-step example:**
+
+Data: [2, 4, 4, 4, 5, 5, 7, 9]
+
+```
+Step 1: Calculate the mean
+        Sum = 2+4+4+4+5+5+7+9 = 40
+        n = 8
+        Mean = 40 ÷ 8 = 5
+
+Step 2: Find each value's distance from mean
+        Value   Distance (x - mean)
+        2       2 - 5 = -3
+        4       4 - 5 = -1
+        4       4 - 5 = -1
+        4       4 - 5 = -1
+        5       5 - 5 = 0
+        5       5 - 5 = 0
+        7       7 - 5 = +2
+        9       9 - 5 = +4
+
+Step 3: Square each distance
+        (-3)² = 9
+        (-1)² = 1
+        (-1)² = 1
+        (-1)² = 1
+        (0)² = 0
+        (0)² = 0
+        (+2)² = 4
+        (+4)² = 16
+
+Step 4: Sum the squared distances
+        9 + 1 + 1 + 1 + 0 + 0 + 4 + 16 = 32
+
+Step 5: Divide by (n-1) for sample variance
+        Sample Variance = 32 ÷ 7 = 4.57
+```
+
+---
+
+### Standard Deviation (Square Root of Variance)
+
+**What is it?** Standard deviation is variance brought back to the original units.
+
+**Formula:**
+$$s = \sqrt{s^2} = \sqrt{\text{variance}}$$
+
+**Why use it?** Variance is in "squared units" (like dollars²), which doesn't make sense. Standard deviation is in original units (dollars).
+
+**From our example:**
+```
+Variance = 4.57
+Standard Deviation = √4.57 = 2.14
+```
+
+**Interpretation:** Values typically differ from the mean by about 2.14 units.
+
+---
+
+### Interquartile Range (IQR)
+
+**What is it?** IQR measures the spread of the middle 50% of data.
+
+**Related concepts - Quartiles:**
+- **Q1 (25th percentile):** 25% of data is below this value
+- **Q2 (50th percentile):** 50% below = The Median!
+- **Q3 (75th percentile):** 75% of data is below this value
+
+**Formula:**
+$$IQR = Q3 - Q1$$
+
+**Step-by-step example:**
+
+Data (sorted): [2, 4, 4, 4, 5, 5, 7, 9]
+
+```
+Step 1: Find Q1 (median of lower half)
+        Lower half: [2, 4, 4, 4]
+        Q1 = (4 + 4) ÷ 2 = 4
+
+Step 2: Find Q3 (median of upper half)
+        Upper half: [5, 5, 7, 9]
+        Q3 = (5 + 7) ÷ 2 = 6
+
+Step 3: Calculate IQR
+        IQR = Q3 - Q1 = 6 - 4 = 2
+```
+
+**Why IQR is useful:** It's robust to outliers! The middle 50% isn't affected by extreme values.
+
+---
+
+### Detecting Outliers with IQR
+
+**Rule:** A value is an outlier if it falls outside these bounds:
+- **Lower bound:** Q1 - 1.5 × IQR
+- **Upper bound:** Q3 + 1.5 × IQR
+
+**Example:**
+```
+Q1 = 4, Q3 = 6, IQR = 2
+
+Lower bound = 4 - (1.5 × 2) = 4 - 3 = 1
+Upper bound = 6 + (1.5 × 2) = 6 + 3 = 9
+
+Any value < 1 or > 9 is an outlier.
+```
+
+---
+
+## 1.3 Python Code for Descriptive Statistics
+
+Now let's see how to calculate everything in Python using pandas.
+
+### Understanding the Libraries First
+
+**pandas:** A Python library for data manipulation. Think of it as Excel in Python.
+- **Series:** A single column of data (like one Excel column)
+- **DataFrame:** A table with rows and columns (like an Excel sheet)
+
+**numpy:** A library for numerical computations. Provides mathematical functions.
+
+```python
+# ============================================================
+# IMPORTING LIBRARIES
+# ============================================================
+# 'import' loads a library into Python so we can use it
+# 'as' gives it a shorter nickname for convenience
+
+import pandas as pd   # pd is the standard nickname for pandas
+import numpy as np    # np is the standard nickname for numpy
+
+# ============================================================
+# CREATING A PANDAS SERIES (A Single Column of Data)
+# ============================================================
+# pd.Series() creates a one-dimensional array with labels
+# The list inside contains our transaction values in dollars
+
+transactions = pd.Series([25, 30, 35, 40, 45, 50, 150])
+
+# Let's see what we created
+print("Our data:")
+print(transactions)
+print()  # Prints a blank line for readability
+
+# Output will look like:
+# 0     25     <- Index 0, Value 25
+# 1     30     <- Index 1, Value 30
+# 2     35     ... and so on
+# 3     40
+# 4     45
+# 5     50
+# 6    150     <- This is our outlier!
+
+# ============================================================
+# CENTRAL TENDENCY CALCULATIONS
+# ============================================================
+
+# ----- MEAN -----
+# .mean() calculates the arithmetic average
+# Formula: sum of all values ÷ count of values
+# Calculation: (25+30+35+40+45+50+150) ÷ 7 = 375 ÷ 7 = 53.57
+
+mean_value = transactions.mean()
+
+print(f"Mean: {mean_value:.2f}")
+# Explanation of f-string: f"text {variable:.2f}"
+# - f at the start means "formatted string"
+# - {mean_value} inserts the variable's value
+# - :.2f means "format as float with 2 decimal places"
+# Output: Mean: 53.57
+
+# ----- MEDIAN -----
+# .median() finds the middle value when sorted
+# Our data sorted: [25, 30, 35, 40, 45, 50, 150]
+# 7 values, so middle is position 4 (index 3) = 40
+
+median_value = transactions.median()
+
+print(f"Median: {median_value:.2f}")
+# Output: Median: 40.00
+
+# Notice: Mean (53.57) > Median (40)
+# This tells us data is RIGHT-SKEWED (pulled up by the outlier 150)
+
+# ----- MODE -----
+# .mode() finds the most frequent value
+# If all values appear once, it returns all of them
+
+mode_value = transactions.mode()
+
+print(f"Mode: {mode_value.values}")
+# Output: Mode: [25 30 35 40 45 50 150]
+# (All values appear once, so all are "modes" - not useful here)
+
+# ============================================================
+# DISPERSION CALCULATIONS
+# ============================================================
+
+# ----- VARIANCE -----
+# .var() calculates sample variance (uses n-1 by default)
+# This is Bessel-corrected for sample data
+
+variance_value = transactions.var()
+
+print(f"Variance (sample, n-1): {variance_value:.2f}")
+# Output: Variance (sample, n-1): 1922.62
+
+# For population variance (uses n), specify ddof=0
+# ddof = "delta degrees of freedom" = what to subtract from n
+variance_pop = transactions.var(ddof=0)
+
+print(f"Variance (population, n): {variance_pop:.2f}")
+# Output: Variance (population, n): 1647.96
+
+# ----- STANDARD DEVIATION -----
+# .std() calculates sample standard deviation
+# It's the square root of variance
+
+std_value = transactions.std()
+
+print(f"Standard Deviation: {std_value:.2f}")
+# Output: Standard Deviation: 43.85
+# Interpretation: Values typically differ from mean by ~$43.85
+
+# ----- RANGE -----
+# .max() returns largest value, .min() returns smallest
+
+range_value = transactions.max() - transactions.min()
+
+print(f"Range: {range_value}")
+# Output: Range: 125
+# Calculation: 150 - 25 = 125
+
+# ============================================================
+# PERCENTILES AND IQR
+# ============================================================
+
+# .quantile(p) returns the value where p% of data is below
+# p is between 0 and 1 (so 0.25 = 25%)
+
+q1 = transactions.quantile(0.25)   # 25th percentile
+q2 = transactions.quantile(0.50)   # 50th percentile = median
+q3 = transactions.quantile(0.75)   # 75th percentile
+
+print(f"Q1 (25th percentile): {q1}")
+print(f"Q2 (50th percentile / Median): {q2}")
+print(f"Q3 (75th percentile): {q3}")
+
+# Calculate IQR
+iqr = q3 - q1
+
+print(f"IQR (Q3 - Q1): {iqr}")
+
+# ============================================================
+# OUTLIER DETECTION
+# ============================================================
+
+# Calculate outlier boundaries
+lower_bound = q1 - (1.5 * iqr)
+upper_bound = q3 + (1.5 * iqr)
+
+print(f"Lower bound: {lower_bound}")
+print(f"Upper bound: {upper_bound}")
+
+# Find values outside bounds
+# The | symbol means "OR" in pandas boolean operations
+# We need parentheses around each condition
+
+outliers = transactions[
+    (transactions < lower_bound) | (transactions > upper_bound)
+]
+
+print(f"Outliers: {outliers.values}")
+# Output: Outliers: [150]
+# The value 150 is identified as an outlier!
+
+# ============================================================
+# DESCRIBE() - ONE COMMAND SUMMARY
+# ============================================================
+
+# .describe() gives you all basic stats at once
+print("\n=== DESCRIBE OUTPUT ===")
+print(transactions.describe())
+
+# Output:
+# count      7.00    <- Number of non-null values
+# mean      53.57    <- Arithmetic average
+# std       43.85    <- Standard deviation
+# min       25.00    <- Minimum value
+# 25%       32.50    <- Q1 (25th percentile)
+# 50%       40.00    <- Median (50th percentile)
+# 75%       47.50    <- Q3 (75th percentile)
+# max      150.00    <- Maximum value
+```
+
+**Line-by-Line Code Explanation Summary:**
+
+| Line | What It Does |
+|------|--------------|
+| `import pandas as pd` | Loads pandas library, calls it 'pd' |
+| `pd.Series([...])` | Creates a 1D array with an index |
+| `.mean()` | Calculates arithmetic average |
+| `.median()` | Finds the middle value |
+| `.mode()` | Finds most frequent value(s) |
+| `.var()` | Calculates variance (n-1 by default) |
+| `.std()` | Calculates standard deviation |
+| `.quantile(0.25)` | Finds value at 25th percentile |
+| `.describe()` | Shows summary statistics |
+| `f"text {var:.2f}"` | Formatted string with 2 decimal places |
+
+---
+
+# Topic 2: Probability Fundamentals
+
+## What is Probability? (Theory Deep Dive)
+
+**Probability** is a number between 0 and 1 that measures how likely something is to happen.
+
+- **P = 0:** Impossible (will never happen)
+- **P = 1:** Certain (will definitely happen)
+- **P = 0.5:** Equally likely to happen or not happen (like a fair coin flip)
+
+**Common notations:**
+- P(A) = Probability of event A happening
+- P(not A) or P(A') = Probability of event A NOT happening
+- P(A and B) = Probability of BOTH A and B happening
+- P(A or B) = Probability of EITHER A or B (or both) happening
+- P(A|B) = Probability of A GIVEN that B has already happened
+
+---
+
+## 2.1 Basic Probability Formula
+
+$$P(A) = \frac{\text{Number of favorable outcomes}}{\text{Total number of possible outcomes}}$$
+
+**Example:** Rolling a die, what's P(getting a 4)?
+```
+Favorable outcomes: 1 (only the number 4)
+Total outcomes: 6 (numbers 1, 2, 3, 4, 5, 6)
+
+P(4) = 1/6 = 0.1667 = 16.67%
+```
+
+---
+
+## 2.2 Complement Rule
+
+The probability of something NOT happening equals 1 minus the probability of it happening.
+
+$$P(\text{not A}) = 1 - P(A)$$
+
+**Example:** If P(rain) = 0.30, then P(no rain) = 1 - 0.30 = 0.70
+
+---
+
+## 2.3 Addition Rule (OR)
+
+**When can A and B NOT happen together (mutually exclusive):**
+$$P(A \text{ or } B) = P(A) + P(B)$$
+
+**Example:** P(rolling 1 OR 6) = 1/6 + 1/6 = 2/6 = 1/3
+
+**When A and B CAN happen together (not mutually exclusive):**
+$$P(A \text{ or } B) = P(A) + P(B) - P(A \text{ and } B)$$
+
+We subtract P(A and B) because we counted it twice!
+
+**Example:** In a deck of 52 cards, P(Heart OR Queen)?
+```
+P(Heart) = 13/52 (13 hearts in deck)
+P(Queen) = 4/52 (4 queens in deck)
+P(Heart AND Queen) = 1/52 (only 1 queen of hearts)
+
+P(Heart OR Queen) = 13/52 + 4/52 - 1/52 = 16/52 = 0.308
+```
+
+---
+
+## 2.4 Multiplication Rule (AND)
+
+**When A and B are independent (one doesn't affect the other):**
+$$P(A \text{ and } B) = P(A) \times P(B)$$
+
+**Example:** Flipping two fair coins, P(both heads)?
+```
+P(first coin heads) = 0.5
+P(second coin heads) = 0.5
+
+P(both heads) = 0.5 × 0.5 = 0.25
+```
+
+**When A and B are dependent:**
+$$P(A \text{ and } B) = P(A) \times P(B|A)$$
+
+---
+
+## 2.5 Conditional Probability
+
+**What is it?** The probability of A happening GIVEN that we already know B happened.
+
+$$P(A|B) = \frac{P(A \text{ and } B)}{P(B)}$$
+
+**The vertical bar "|" means "given that"**
+
+**Example:** Customer data
+
+| | Churned | Stayed | Total |
+|---|---|---|---|
 | Gold | 10 | 90 | 100 |
 | Silver | 30 | 70 | 100 |
 | Bronze | 50 | 50 | 100 |
-| Total | 90 | 210 | 300 |
+| **Total** | 90 | 210 | 300 |
+
+**Question:** What's P(Churn | Gold)? (Probability of churning given the customer is Gold)
+
+```
+Step 1: Identify what we need
+        - We only look at GOLD customers (that's our "given")
+        - Among those, how many churned?
+
+Step 2: Calculate
+        Gold customers who churned: 10
+        Total Gold customers: 100
+
+        P(Churn | Gold) = 10/100 = 0.10 = 10%
+```
+
+**Question:** What's P(Gold | Churn)? (Given they churned, probability they were Gold)
+
+```
+Step 1: Identify what we need
+        - We only look at customers who CHURNED
+        - Among those, how many were Gold?
+
+Step 2: Calculate
+        Churned customers who were Gold: 10
+        Total churned customers: 90
+
+        P(Gold | Churn) = 10/90 = 0.111 = 11.1%
+```
+
+**Key Insight:** P(A|B) ≠ P(B|A) — they're different questions!
+
+---
+
+## 2.6 Bayes' Theorem
+
+**What is it?** A formula to "flip" conditional probabilities. If you know P(B|A), you can find P(A|B).
+
+$$P(A|B) = \frac{P(B|A) \times P(A)}{P(B)}$$
+
+**When to use it?** When you know the probability "in one direction" but need it "in the other direction."
+
+**Classic Example: Medical Testing**
+
+A disease affects 1% of the population. A test has:
+- 99% accuracy for people WITH disease (detects it correctly)
+- 95% accuracy for people WITHOUT disease (correctly says negative)
+
+**Question:** If someone tests positive, what's the probability they actually have the disease?
+
+```
+Let D = has disease, T+ = tests positive
+
+Given information:
+- P(D) = 0.01 (1% have disease)
+- P(not D) = 0.99 (99% don't have disease)
+- P(T+ | D) = 0.99 (if you have disease, 99% chance test is positive)
+- P(T+ | not D) = 0.05 (if you don't have disease, 5% false positive)
+
+We want: P(D | T+)
+
+Step 1: Find P(T+) using Law of Total Probability
+        P(T+) = P(T+ | D) × P(D) + P(T+ | not D) × P(not D)
+        P(T+) = (0.99 × 0.01) + (0.05 × 0.99)
+        P(T+) = 0.0099 + 0.0495
+        P(T+) = 0.0594
+
+Step 2: Apply Bayes' Theorem
+        P(D | T+) = P(T+ | D) × P(D) / P(T+)
+        P(D | T+) = (0.99 × 0.01) / 0.0594
+        P(D | T+) = 0.0099 / 0.0594
+        P(D | T+) = 0.167 = 16.7%
+```
+
+**Surprising result:** Even with a 99% accurate test, a positive result only means 16.7% chance of having the disease! This is because the disease is rare (1%), so false positives outnumber true positives.
+
+---
+
+## 2.7 Python Code for Probability
 
 ```python
+# ============================================================
+# PROBABILITY CALCULATIONS IN PYTHON
+# ============================================================
+
 import pandas as pd
 
-# Create contingency table
-data = {
+# ============================================================
+# CREATING OUR DATA
+# ============================================================
+# Let's create the customer churn data from our theory section
+# We'll use a DataFrame (like a table/spreadsheet in Python)
+
+# pd.DataFrame() creates a table from a dictionary
+# Keys become column names, values become column data
+data = pd.DataFrame({
     'Segment': ['Gold', 'Silver', 'Bronze'],
-    'Churn': [10, 30, 50],
-    'No_Churn': [90, 70, 50]
-}
-df = pd.DataFrame(data)
-df['Total'] = df['Churn'] + df['No_Churn']
-
-# Grand totals
-total_customers = df['Total'].sum()  # 300
-total_churn = df['Churn'].sum()       # 90
-total_no_churn = df['No_Churn'].sum() # 210
-
-print("=== SIMPLE PROBABILITIES ===")
-
-# P(Churn) = customers who churned / total customers
-# P(Churn) = 90 / 300 = 0.30
-p_churn = total_churn / total_customers
-print(f"P(Churn) = {total_churn}/{total_customers} = {p_churn:.3f}")
-
-# P(Gold) = Gold customers / total customers
-# P(Gold) = 100 / 300 = 0.333
-gold_total = df[df['Segment'] == 'Gold']['Total'].values[0]
-p_gold = gold_total / total_customers
-print(f"P(Gold) = {gold_total}/{total_customers} = {p_gold:.3f}")
-
-print("\n=== CONDITIONAL PROBABILITIES ===")
-
-# P(Churn | Gold) = P(Churn AND Gold) / P(Gold)
-# = (Gold customers who churned) / (all Gold customers)
-# = 10 / 100 = 0.10
-gold_churn = df[df['Segment'] == 'Gold']['Churn'].values[0]
-p_churn_given_gold = gold_churn / gold_total
-print(f"P(Churn | Gold) = {gold_churn}/{gold_total} = {p_churn_given_gold:.3f}")
-
-# P(Churn | Bronze) = 50 / 100 = 0.50
-bronze_total = df[df['Segment'] == 'Bronze']['Total'].values[0]
-bronze_churn = df[df['Segment'] == 'Bronze']['Churn'].values[0]
-p_churn_given_bronze = bronze_churn / bronze_total
-print(f"P(Churn | Bronze) = {bronze_churn}/{bronze_total} = {p_churn_given_bronze:.3f}")
-
-print("\n=== BAYES' THEOREM ===")
-# P(Gold | Churn) = P(Churn | Gold) × P(Gold) / P(Churn)
-# Given someone churned, what's probability they were Gold?
-
-# Step-by-step calculation:
-# P(Churn | Gold) = 0.10 (calculated above)
-# P(Gold) = 0.333 (calculated above)
-# P(Churn) = 0.30 (calculated above)
-
-p_gold_given_churn = (p_churn_given_gold * p_gold) / p_churn
-print(f"P(Gold | Churn) = ({p_churn_given_gold:.3f} × {p_gold:.3f}) / {p_churn:.3f}")
-print(f"                = {p_gold_given_churn:.4f}")
-# = (0.10 × 0.333) / 0.30 = 0.0333 / 0.30 = 0.111
-
-# Verify: Among 90 churned customers, 10 are Gold = 10/90 = 0.111 ✓
-print(f"Verification: {gold_churn}/{total_churn} = {gold_churn/total_churn:.4f}")
-```
-
-**Line-by-line Explanation:**
-
-1. `p_churn = 90 / 300` — Simple probability: fraction of all customers who churned.
-
-2. `p_churn_given_gold = 10 / 100` — Conditional probability: among ONLY Gold customers, what fraction churned?
-
-3. **Bayes' Theorem calculation:**
-   - We know P(Churn|Gold) = 0.10
-   - We want P(Gold|Churn) = ?
-   - Bayes: P(Gold|Churn) = P(Churn|Gold) × P(Gold) / P(Churn)
-   - = (0.10 × 0.333) / 0.30 = 0.111
-
-**Key Insight:** Only 11.1% of churned customers are Gold, despite Gold being 33.3% of all customers. This is because Gold customers have a low churn rate (10% vs 30% overall).
-
-### Practice Problem 2.2: Independence Check
-
-**Problem:** Determine if segment and churn are independent.
-
-```python
-# Two events are INDEPENDENT if P(A|B) = P(A)
-# i.e., knowing B doesn't change the probability of A
-
-# Check: Is P(Churn | Gold) = P(Churn)?
-p_churn = 0.30
-p_churn_given_gold = 0.10
-
-print("Independence Check:")
-print(f"P(Churn) = {p_churn}")
-print(f"P(Churn | Gold) = {p_churn_given_gold}")
-
-if abs(p_churn - p_churn_given_gold) < 0.01:
-    print("Segment and Churn are INDEPENDENT")
-else:
-    print("Segment and Churn are DEPENDENT")
-    print(f"Difference: {abs(p_churn - p_churn_given_gold):.2f}")
-```
-
-**Explanation:** Since P(Churn|Gold) = 0.10 ≠ P(Churn) = 0.30, segment and churn are dependent. Knowing someone is Gold DOES change our estimate of their churn probability.
-
----
-
-## Topic 3: Common Distributions
-
-### Plain-English Explanation
-A distribution describes how probable each possible value is. **Normal distribution** (bell curve) appears everywhere due to Central Limit Theorem. **Binomial** counts successes in fixed trials (e.g., 5 customers, how many convert?). **Poisson** counts events in fixed time/space (e.g., customers arriving per hour).
-
-Memory hook:
-- **Normal:** Continuous, symmetric, mean=median=mode
-- **Binomial:** n trials, yes/no outcome, count successes
-- **Poisson:** Count events in interval, rare events
-
-### Step-by-Step Learning Checklist
-- [ ] Generate and visualize a normal distribution
-- [ ] Calculate probabilities from normal distribution
-- [ ] Use z-scores to standardize values
-- [ ] Calculate binomial probabilities
-- [ ] Recognize when to use Poisson
-
-### What to Say in Interview
-> "I use the normal distribution when data is the result of many small independent factors—like customer lifetime value. Binomial is for counting yes/no outcomes in fixed trials, like conversion rates."
-
-### Common Pitfalls
-- **Pitfall:** Assuming all data is normal → **Fix:** Always check with histogram or Q-Q plot
-- **Pitfall:** Using wrong distribution for count data → **Fix:** Counts are often Poisson or Negative Binomial
-- **Pitfall:** Forgetting z-score direction → **Fix:** z = (x - mean) / std. Positive z = above mean
-
-### Key Python Functions
-
-```python
-from scipy import stats
-
-# Normal: stats.norm.pdf(), stats.norm.cdf(), stats.norm.ppf()
-# Binomial: stats.binom.pmf(), stats.binom.cdf()
-# Poisson: stats.poisson.pmf(), stats.poisson.cdf()
-```
-
-### Practice Problem 3.1: Normal Distribution
-
-**Problem:** Customer spend follows a normal distribution with mean=$50, std=$10. Calculate various probabilities.
-
-```python
-import numpy as np
-from scipy import stats
-
-# Define the distribution parameters
-mean = 50   # Average customer spend
-std = 10    # Standard deviation
-
-# Create the distribution object
-# This represents: X ~ Normal(mean=50, std=10)
-normal_dist = stats.norm(loc=mean, scale=std)
-
-print("=== PROBABILITY CALCULATIONS ===\n")
-
-# Question 1: What's the probability a customer spends less than $40?
-# P(X < 40) = ?
-prob_less_40 = normal_dist.cdf(40)  # CDF gives P(X <= value)
-print(f"P(X < 40) = {prob_less_40:.4f}")
-print(f"Interpretation: {prob_less_40*100:.2f}% of customers spend less than $40\n")
-
-# Question 2: What's the probability a customer spends more than $70?
-# P(X > 70) = 1 - P(X <= 70)
-prob_more_70 = 1 - normal_dist.cdf(70)
-print(f"P(X > 70) = 1 - P(X <= 70) = {prob_more_70:.4f}")
-print(f"Interpretation: {prob_more_70*100:.2f}% of customers spend more than $70\n")
-
-# Question 3: What's the probability a customer spends between $45 and $65?
-# P(45 < X < 65) = P(X < 65) - P(X < 45)
-prob_45_to_65 = normal_dist.cdf(65) - normal_dist.cdf(45)
-print(f"P(45 < X < 65) = P(X<65) - P(X<45)")
-print(f"             = {normal_dist.cdf(65):.4f} - {normal_dist.cdf(45):.4f}")
-print(f"             = {prob_45_to_65:.4f}\n")
-
-print("=== Z-SCORE CALCULATIONS ===\n")
-
-# Z-score: How many standard deviations from the mean?
-# Formula: z = (x - mean) / std
-x = 70
-z = (x - mean) / std
-print(f"Z-score for x=${x}:")
-print(f"z = ({x} - {mean}) / {std} = {z}")
-print(f"Interpretation: ${x} is {z} standard deviations above the mean\n")
-
-# Use z-score to find probability (should match prob_more_70)
-standard_normal = stats.norm(0, 1)  # Standard normal: mean=0, std=1
-prob_from_z = 1 - standard_normal.cdf(z)
-print(f"P(Z > {z}) = {prob_from_z:.4f} (matches P(X > 70))\n")
-
-print("=== PERCENTILE CALCULATIONS (INVERSE) ===\n")
-
-# What spend value is at the 90th percentile?
-# i.e., what value x such that P(X <= x) = 0.90?
-percentile_90 = normal_dist.ppf(0.90)  # ppf = percent point function (inverse of cdf)
-print(f"90th percentile: ${percentile_90:.2f}")
-print(f"Interpretation: 90% of customers spend less than ${percentile_90:.2f}")
-
-# What spend value is at the 10th percentile?
-percentile_10 = normal_dist.ppf(0.10)
-print(f"10th percentile: ${percentile_10:.2f}")
-```
-
-**Line-by-line Explanation:**
-
-1. `stats.norm(loc=50, scale=10)` — Create a normal distribution object. `loc`=mean, `scale`=std.
-
-2. `.cdf(40)` — Cumulative Distribution Function. Returns P(X ≤ 40). Think: "what fraction is to the LEFT of 40?"
-
-3. `1 - normal_dist.cdf(70)` — P(X > 70) = complement of P(X ≤ 70).
-
-4. `.cdf(65) - .cdf(45)` — P(45 < X < 65). Subtract the CDF values to get "area between."
-
-5. `z = (x - mean) / std` — Z-score standardizes any normal to standard normal (mean=0, std=1).
-
-6. `.ppf(0.90)` — Percent Point Function (inverse of CDF). Given a probability, what's the value?
-
-```mermaid
-flowchart LR
-    A[Raw Value x=70] --> B["z = (70-50)/10 = 2"]
-    B --> C[Look up in Standard Normal]
-    C --> D["P(Z > 2) = 0.0228"]
-    D --> E["2.28% spend > $70"]
-```
-
-*Diagram Caption: Converting raw values to z-scores for probability lookup.*
-
-### Practice Problem 3.2: Binomial Distribution
-
-**Problem:** A store has a 20% conversion rate. If 10 customers enter, what's the probability exactly 3 convert?
-
-```python
-from scipy import stats
-
-# Binomial parameters
-n = 10      # Number of trials (customers)
-p = 0.20    # Probability of success (conversion rate)
-
-# Create binomial distribution
-binom_dist = stats.binom(n=n, p=p)
-
-# P(X = 3) - probability of EXACTLY 3 conversions
-# Using PMF (Probability Mass Function) for discrete distributions
-prob_exactly_3 = binom_dist.pmf(3)
-print(f"P(X = 3) = {prob_exactly_3:.4f}")
-print(f"There's a {prob_exactly_3*100:.1f}% chance exactly 3 of 10 customers convert\n")
-
-# P(X <= 2) - probability of 2 or fewer conversions
-prob_at_most_2 = binom_dist.cdf(2)
-print(f"P(X <= 2) = {prob_at_most_2:.4f}")
-
-# P(X >= 4) - probability of 4 or more conversions
-prob_at_least_4 = 1 - binom_dist.cdf(3)  # 1 - P(X <= 3)
-print(f"P(X >= 4) = {prob_at_least_4:.4f}")
-
-# Expected value and standard deviation
-expected = n * p
-std = (n * p * (1-p)) ** 0.5
-print(f"\nExpected conversions: E[X] = n*p = {n}*{p} = {expected}")
-print(f"Standard deviation: sqrt(n*p*(1-p)) = {std:.2f}")
-
-# Manual calculation of P(X = 3) using formula
-# P(X=k) = C(n,k) * p^k * (1-p)^(n-k)
-from math import comb
-k = 3
-manual_prob = comb(n, k) * (p ** k) * ((1-p) ** (n-k))
-print(f"\nManual: C({n},{k}) * {p}^{k} * {1-p}^{n-k}")
-print(f"      = {comb(n,k)} * {p**k:.6f} * {(1-p)**(n-k):.6f}")
-print(f"      = {manual_prob:.4f}")
-```
-
-**Line-by-line Explanation:**
-
-1. `stats.binom(n=10, p=0.20)` — Binomial distribution: 10 trials, 20% success probability each.
-
-2. `.pmf(3)` — Probability Mass Function. For discrete distributions, gives P(X = exact value).
-
-3. `.cdf(2)` — Cumulative: P(X ≤ 2) = P(0) + P(1) + P(2).
-
-4. `1 - binom.cdf(3)` — "At least 4" = complement of "at most 3".
-
-5. `E[X] = n × p` — Expected value of binomial. Here: 10 × 0.20 = 2 expected conversions.
-
-6. `comb(n, k)` — "n choose k" = number of ways to choose k successes from n trials.
-
----
-
-## Topic 4: Hypothesis Testing
-
-### Plain-English Explanation
-Hypothesis testing is a framework for making decisions from data. You start with a **null hypothesis** (H₀: no effect) and an **alternative** (H₁: there IS an effect). You calculate a **p-value**—the probability of seeing your data if H₀ is true. If p-value < α (typically 0.05), you reject H₀.
-
-Memory hook: **"p-value = probability of this extreme a result if nothing is happening"**
-
-### Step-by-Step Learning Checklist
-- [ ] State null and alternative hypotheses
-- [ ] Calculate a t-statistic
-- [ ] Interpret p-values correctly
-- [ ] Understand Type I and Type II errors
-- [ ] Know when to use one-tailed vs two-tailed tests
-
-### What to Say in Interview
-> "I use α=0.05 as a standard, but adjust based on context. For medical decisions where false positives are costly, I'd use α=0.01. The p-value tells me HOW surprising my data is under the null."
-
-### Common Pitfalls
-- **Pitfall:** Saying "p-value = probability hypothesis is true" → **Fix:** It's P(data | H₀), not P(H₀ | data)
-- **Pitfall:** Ignoring effect size → **Fix:** Statistical significance ≠ practical significance
-- **Pitfall:** Multiple testing without correction → **Fix:** Use Bonferroni or FDR correction
-
-### Key Concepts
-
-| Term | Meaning |
-|------|---------|
-| H₀ (Null) | No effect, no difference, status quo |
-| H₁ (Alternative) | There IS an effect or difference |
-| α (alpha) | Significance level (typically 0.05) |
-| p-value | P(data this extreme \| H₀ is true) |
-| Type I Error | False positive (reject H₀ when it's true) |
-| Type II Error | False negative (fail to reject H₀ when H₁ true) |
-| Power | 1 - P(Type II Error) = ability to detect effect |
-
-### Practice Problem 4.1: One-Sample t-test
-
-**Problem:** A store claims average transaction value is $50. A sample of 30 transactions has mean $53 and std $12. Is this significantly different from $50?
-
-```python
-import numpy as np
-from scipy import stats
-
-# Sample data (simulated with seed for reproducibility)
-np.random.seed(42)
-sample = np.random.normal(loc=53, scale=12, size=30)
-
-# Actual sample statistics
-sample_mean = sample.mean()
-sample_std = sample.std(ddof=1)  # Sample std (n-1)
-n = len(sample)
-hypothesized_mean = 50  # The claimed value (null hypothesis)
-
-print("=== SAMPLE STATISTICS ===")
-print(f"Sample size: n = {n}")
-print(f"Sample mean: x̄ = {sample_mean:.2f}")
-print(f"Sample std: s = {sample_std:.2f}")
-print(f"Hypothesized mean (H₀): μ₀ = {hypothesized_mean}")
-
-print("\n=== HYPOTHESIS SETUP ===")
-print("H₀: μ = 50 (average transaction is $50)")
-print("H₁: μ ≠ 50 (average transaction is NOT $50)")
-print("This is a TWO-TAILED test (we care about any difference)")
-print("α = 0.05")
-
-# === METHOD 1: Manual calculation ===
-print("\n=== MANUAL CALCULATION ===")
-
-# t-statistic formula: t = (x̄ - μ₀) / (s / √n)
-# This measures: how far is sample mean from hypothesized mean,
-# in units of standard error
-standard_error = sample_std / np.sqrt(n)
-t_stat = (sample_mean - hypothesized_mean) / standard_error
-
-print(f"Standard Error: SE = s/√n = {sample_std:.2f}/√{n} = {standard_error:.4f}")
-print(f"t-statistic: t = (x̄ - μ₀)/SE = ({sample_mean:.2f} - {hypothesized_mean})/{standard_error:.4f}")
-print(f"           t = {t_stat:.4f}")
-
-# Degrees of freedom for one-sample t-test
-df = n - 1
-print(f"Degrees of freedom: df = n-1 = {df}")
-
-# p-value: probability of t-stat this extreme (two-tailed)
-# Multiply by 2 because we're testing "different from" not "greater than"
-p_value_manual = 2 * (1 - stats.t.cdf(abs(t_stat), df))
-print(f"p-value (two-tailed): {p_value_manual:.4f}")
-
-# === METHOD 2: Using scipy.stats ===
-print("\n=== SCIPY ONE-SAMPLE T-TEST ===")
-t_stat_scipy, p_value_scipy = stats.ttest_1samp(sample, hypothesized_mean)
-print(f"t-statistic: {t_stat_scipy:.4f}")
-print(f"p-value: {p_value_scipy:.4f}")
-
-# === INTERPRETATION ===
-print("\n=== INTERPRETATION ===")
-alpha = 0.05
-if p_value_scipy < alpha:
-    print(f"p-value ({p_value_scipy:.4f}) < α ({alpha})")
-    print("→ REJECT H₀")
-    print("Conclusion: The average transaction IS significantly different from $50")
-else:
-    print(f"p-value ({p_value_scipy:.4f}) >= α ({alpha})")
-    print("→ FAIL TO REJECT H₀")
-    print("Conclusion: Not enough evidence that average differs from $50")
-
-# === CONFIDENCE INTERVAL ===
-print("\n=== 95% CONFIDENCE INTERVAL ===")
-# CI = x̄ ± t_critical * SE
-t_critical = stats.t.ppf(0.975, df)  # 97.5% for two-tailed 95% CI
-margin_of_error = t_critical * standard_error
-ci_lower = sample_mean - margin_of_error
-ci_upper = sample_mean + margin_of_error
-print(f"t-critical (α/2=0.025, df={df}): {t_critical:.4f}")
-print(f"Margin of error: {margin_of_error:.2f}")
-print(f"95% CI: ({ci_lower:.2f}, {ci_upper:.2f})")
-print(f"If CI doesn't contain {hypothesized_mean}, we reject H₀")
-```
-
-**Line-by-line Explanation:**
-
-1. `t = (x̄ - μ₀) / (s / √n)` — t-statistic measures how many standard errors the sample mean is from the hypothesized mean.
-
-2. `df = n - 1` — Degrees of freedom. For one-sample t-test, it's sample size minus 1.
-
-3. `2 * (1 - stats.t.cdf(abs(t_stat), df))` — Two-tailed p-value. We multiply by 2 because we care about EITHER direction.
-
-4. `stats.ttest_1samp(sample, 50)` — scipy's built-in one-sample t-test. Returns t-statistic and p-value.
-
-5. **Decision rule:** If p-value < α, reject H₀. Otherwise, fail to reject.
-
-6. `stats.t.ppf(0.975, df)` — Critical t-value for 95% confidence interval (leaving 2.5% in each tail).
-
-### Practice Problem 4.2: Two-Sample t-test
-
-**Problem:** Compare conversion rates between Control (mean=0.18) and Treatment (mean=0.22). Is the difference significant?
-
-```python
-import numpy as np
-from scipy import stats
-
-# Simulate conversion data (0/1 outcomes)
-np.random.seed(42)
-
-# Control group: 500 customers, 18% conversion rate
-control = np.random.binomial(1, 0.18, 500)
-
-# Treatment group: 500 customers, 22% conversion rate  
-treatment = np.random.binomial(1, 0.22, 500)
-
-print("=== SAMPLE STATISTICS ===")
-print(f"Control: n={len(control)}, mean={control.mean():.4f}, std={control.std():.4f}")
-print(f"Treatment: n={len(treatment)}, mean={treatment.mean():.4f}, std={treatment.std():.4f}")
-print(f"Observed difference: {treatment.mean() - control.mean():.4f}")
-
-print("\n=== HYPOTHESIS ===")
-print("H₀: μ_treatment = μ_control (no difference)")
-print("H₁: μ_treatment ≠ μ_control (there IS a difference)")
-
-# Two-sample t-test (assuming unequal variances - Welch's t-test)
-# This is more robust than assuming equal variances
-t_stat, p_value = stats.ttest_ind(treatment, control, equal_var=False)
-
-print("\n=== RESULTS (WELCH'S T-TEST) ===")
-print(f"t-statistic: {t_stat:.4f}")
-print(f"p-value: {p_value:.4f}")
-
-alpha = 0.05
-if p_value < alpha:
-    print(f"\nReject H₀ (p={p_value:.4f} < α={alpha})")
-    print("The treatment has a significantly different conversion rate")
-else:
-    print(f"\nFail to reject H₀ (p={p_value:.4f} >= α={alpha})")
-    print("No significant difference detected")
-
-# === EFFECT SIZE: Cohen's d ===
-# Measures PRACTICAL significance (how big is the difference?)
-pooled_std = np.sqrt((control.std()**2 + treatment.std()**2) / 2)
-cohens_d = (treatment.mean() - control.mean()) / pooled_std
-print(f"\n=== EFFECT SIZE ===")
-print(f"Cohen's d: {cohens_d:.4f}")
-print("Interpretation: |d| < 0.2 = small, 0.2-0.8 = medium, > 0.8 = large")
-```
-
-**Key Insight:** A low p-value means statistically significant, but always check Cohen's d for practical significance. A tiny difference can be "statistically significant" with large sample sizes.
-
----
-
-## Topic 5: A/B Testing Framework
-
-### Plain-English Explanation
-A/B testing compares two versions (A=Control, B=Treatment) to determine which performs better. You need to: (1) decide your metric, (2) calculate required sample size, (3) run the test, (4) analyze results. Key challenge: don't peek too early or you'll get false positives.
-
-Memory hook: **"A/B testing = hypothesis testing with business context"**
-
-### Step-by-Step Learning Checklist
-- [ ] Define primary metric and hypothesis
-- [ ] Calculate minimum sample size for desired power
-- [ ] Understand concepts: MDE, power, significance
-- [ ] Correctly interpret A/B test results
-
-### What to Say in Interview
-> "Before running an A/B test, I calculate the required sample size based on baseline conversion, minimum detectable effect, and desired power. I use 80% power and 5% significance as standards, but adjust based on business risk tolerance."
-
-### Common Pitfalls
-- **Pitfall:** Stopping test early when seeing "significant" result → **Fix:** Pre-commit to sample size
-- **Pitfall:** Ignoring multiple comparisons → **Fix:** Correct for testing multiple metrics
-- **Pitfall:** Not accounting for novelty effect → **Fix:** Run test long enough for effect to stabilize
-
-### Key Metrics
-
-| Metric | Definition |
-|--------|------------|
-| Baseline Rate | Current conversion/metric rate (Control) |
-| MDE | Minimum Detectable Effect - smallest difference you want to detect |
-| Power | Probability of detecting an effect if it exists (typically 80%) |
-| Significance (α) | False positive rate (typically 5%) |
-
-### Practice Problem 5.1: Sample Size Calculation
-
-**Problem:** Current conversion is 10%. You want to detect a 2% absolute increase (to 12%). How many users per variant?
-
-```python
-import numpy as np
-from scipy import stats
-
-def sample_size_proportion(p1, p2, alpha=0.05, power=0.80):
-    """
-    Calculate required sample size per group for proportion test.
-    
-    Parameters:
-    - p1: Control proportion (baseline)
-    - p2: Treatment proportion (expected with effect)
-    - alpha: Significance level (Type I error rate)
-    - power: Statistical power (1 - Type II error rate)
-    
-    Returns: Sample size needed per group
-    """
-    # Z-scores for significance and power
-    # alpha/2 because it's two-tailed test
-    z_alpha = stats.norm.ppf(1 - alpha/2)  # e.g., 1.96 for α=0.05
-    z_beta = stats.norm.ppf(power)          # e.g., 0.84 for power=0.80
-    
-    print(f"Z for α/2={alpha/2}: {z_alpha:.4f}")
-    print(f"Z for power={power}: {z_beta:.4f}")
-    
-    # Pooled proportion (under null hypothesis)
-    p_pooled = (p1 + p2) / 2
-    
-    # Effect size
-    effect = abs(p2 - p1)
-    print(f"Effect size: {effect:.4f} ({effect*100:.1f}%)")
-    
-    # Sample size formula for two proportions
-    # n = 2 * ((z_α + z_β)² * p_pooled * (1-p_pooled)) / effect²
-    numerator = 2 * ((z_alpha + z_beta) ** 2) * p_pooled * (1 - p_pooled)
-    denominator = effect ** 2
-    n = numerator / denominator
-    
-    return int(np.ceil(n))
-
-# Parameters
-baseline = 0.10      # Current conversion rate (10%)
-target = 0.12        # Target conversion rate (12%)
-alpha = 0.05         # 5% significance level
-power = 0.80         # 80% power
-
-print("=== A/B TEST SAMPLE SIZE CALCULATION ===\n")
-print(f"Baseline conversion: {baseline*100:.1f}%")
-print(f"Target conversion: {target*100:.1f}%")
-print(f"Minimum Detectable Effect: {(target-baseline)*100:.1f}%")
-print(f"Significance level (α): {alpha}")
-print(f"Power: {power}\n")
-
-n_per_group = sample_size_proportion(baseline, target, alpha, power)
-
-print(f"\n=== RESULT ===")
-print(f"Sample size needed: {n_per_group:,} per group")
-print(f"Total sample size: {2*n_per_group:,} (both groups combined)")
-
-# Sensitivity analysis: what if we want 90% power?
-n_high_power = sample_size_proportion(baseline, target, alpha, power=0.90)
-print(f"\nWith 90% power: {n_high_power:,} per group")
-```
-
-**Line-by-line Explanation:**
-
-1. `z_alpha = stats.norm.ppf(1 - alpha/2)` — Z-value for significance. For α=0.05 two-tailed, we use 0.975 quantile = 1.96.
-
-2. `z_beta = stats.norm.ppf(power)` — Z-value for power. For 80% power, = 0.84.
-
-3. `effect = abs(p2 - p1)` — The difference we want to detect (MDE = 2 percentage points).
-
-4. The formula combines significance, power, baseline variance, and effect size to determine required n.
-
-### Practice Problem 5.2: A/B Test Analysis
-
-**Problem:** After running the test, Control had 8% conversion (400/5000) and Treatment had 10% (500/5000). Is this significant?
-
-```python
-import numpy as np
-from scipy import stats
-
-# Test results
-n_control = 5000
-conversions_control = 400
-p_control = conversions_control / n_control
-
-n_treatment = 5000
-conversions_treatment = 500
-p_treatment = conversions_treatment / n_treatment
-
-print("=== A/B TEST RESULTS ===\n")
-print(f"Control: {conversions_control}/{n_control} = {p_control*100:.2f}%")
-print(f"Treatment: {conversions_treatment}/{n_treatment} = {p_treatment*100:.2f}%")
-print(f"Observed lift: {((p_treatment/p_control)-1)*100:.2f}%")
-print(f"Absolute difference: {(p_treatment-p_control)*100:.2f} percentage points")
-
-# === TWO-PROPORTION Z-TEST ===
-
-# Pooled proportion (under H₀ that both are equal)
-p_pooled = (conversions_control + conversions_treatment) / (n_control + n_treatment)
-
-# Standard error of the difference
-se = np.sqrt(p_pooled * (1 - p_pooled) * (1/n_control + 1/n_treatment))
-
-# Z-statistic
-z_stat = (p_treatment - p_control) / se
-
-# P-value (two-tailed)
-p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))
-
-print(f"\n=== STATISTICAL TEST ===")
-print(f"Pooled proportion: {p_pooled:.4f}")
-print(f"Standard error: {se:.6f}")
-print(f"Z-statistic: {z_stat:.4f}")
-print(f"P-value: {p_value:.4f}")
-
-# Decision
-alpha = 0.05
-print(f"\n=== DECISION (α = {alpha}) ===")
-if p_value < alpha:
-    print(f"p-value ({p_value:.4f}) < α ({alpha}) → REJECT H₀")
-    print("Treatment is SIGNIFICANTLY better than Control")
-else:
-    print(f"p-value ({p_value:.4f}) >= α → FAIL TO REJECT H₀")
-    print("No significant difference detected")
-
-# === CONFIDENCE INTERVAL FOR DIFFERENCE ===
-se_diff = np.sqrt((p_control*(1-p_control)/n_control) + (p_treatment*(1-p_treatment)/n_treatment))
-z_crit = stats.norm.ppf(0.975)
-ci_lower = (p_treatment - p_control) - z_crit * se_diff
-ci_upper = (p_treatment - p_control) + z_crit * se_diff
-
-print(f"\n=== 95% CI FOR DIFFERENCE ===")
-print(f"Point estimate: {(p_treatment-p_control)*100:.2f}%")
-print(f"95% CI: ({ci_lower*100:.2f}%, {ci_upper*100:.2f}%)")
-print(f"Since CI doesn't contain 0, result is significant")
-```
-
-**Key Insight:** The 25% relative lift (8% → 10%) translates to 2 percentage points absolute. The confidence interval (0.64%, 3.36%) doesn't include 0, confirming significance.
-
-```mermaid
-flowchart TD
-    A[Define Hypothesis] --> B[Calculate Sample Size]
-    B --> C[Randomize Users]
-    C --> D[Run Test for Fixed Duration]
-    D --> E[Collect Data]
-    E --> F[Statistical Analysis]
-    F --> G{p-value < α?}
-    G -->|Yes| H[Implement Treatment]
-    G -->|No| I[Keep Control]
-    H --> J[Monitor Long-term]
-    I --> J
-```
-
-*Diagram Caption: Standard A/B testing workflow—plan, execute, analyze, decide.*
-
----
-
-## Topic 6: Correlation vs Causation
-
-### Plain-English Explanation
-**Correlation** measures how two variables move together (r ranges from -1 to +1). **Causation** means one variable CAUSES the other. Correlation does NOT imply causation! A third variable (confounder) could drive both. Establishing causation requires experiments (like A/B tests) or careful causal inference.
-
-Memory hook: **"Ice cream sales correlate with drownings—because summer causes both"**
-
-### What to Say in Interview
-> "Observational data shows correlation, not causation. To establish causation, I'd run an A/B test or use techniques like difference-in-differences, regression discontinuity, or instrumental variables."
-
-### Practice Problem 6.1: Correlation Analysis
-
-```python
-import numpy as np
-import pandas as pd
-from scipy import stats
-
-np.random.seed(42)
-
-# Create sample data: marketing spend and revenue
-n = 50
-marketing_spend = np.random.uniform(1000, 5000, n)
-# Revenue = function of marketing + noise (simulated relationship)
-revenue = 50000 + 15 * marketing_spend + np.random.normal(0, 5000, n)
-
-df = pd.DataFrame({
-    'Marketing_Spend': marketing_spend,
-    'Revenue': revenue
+    'Churned': [10, 30, 50],
+    'Stayed': [90, 70, 50]
 })
 
-# Pearson correlation coefficient
-correlation, p_value = stats.pearsonr(df['Marketing_Spend'], df['Revenue'])
+# Add a Total column by summing Churned and Stayed
+data['Total'] = data['Churned'] + data['Stayed']
 
-print("=== CORRELATION ANALYSIS ===\n")
-print(f"Pearson correlation (r): {correlation:.4f}")
-print(f"P-value: {p_value:.4f}")
-print(f"R-squared: {correlation**2:.4f}")
+# Display the data
+print("Customer Data:")
+print(data)
+print()
 
-# Interpretation
-print("\n=== INTERPRETATION ===")
-if abs(correlation) < 0.3:
-    strength = "weak"
-elif abs(correlation) < 0.7:
-    strength = "moderate"
-else:
-    strength = "strong"
-    
-direction = "positive" if correlation > 0 else "negative"
-print(f"There is a {strength} {direction} correlation (r = {correlation:.2f})")
-print(f"R² = {correlation**2:.2f} means {correlation**2*100:.1f}% of revenue variance")
-print("is explained by marketing spend")
+# ============================================================
+# CALCULATING TOTALS
+# ============================================================
+# .sum() adds up all values in a column
 
-print("\n=== CAUTION ===")
-print("This correlation does NOT prove marketing CAUSES revenue")
-print("Possible confounders: seasonality, economy, product launches")
-print("To establish causation: run incrementality test (A/B on marketing)")
+total_customers = data['Total'].sum()        # 100 + 100 + 100 = 300
+total_churned = data['Churned'].sum()        # 10 + 30 + 50 = 90
+total_stayed = data['Stayed'].sum()          # 90 + 70 + 50 = 210
+
+print(f"Total customers: {total_customers}")
+print(f"Total churned: {total_churned}")
+print(f"Total stayed: {total_stayed}")
+print()
+
+# ============================================================
+# SIMPLE PROBABILITY
+# ============================================================
+# P(Churn) = Number who churned / Total customers
+
+p_churn = total_churned / total_customers
+# Calculation: 90 / 300 = 0.30
+
+print(f"P(Churn) = {total_churned}/{total_customers} = {p_churn:.4f}")
+print(f"Interpretation: 30% of all customers churn")
+print()
+
+# ============================================================
+# CONDITIONAL PROBABILITY
+# ============================================================
+# P(Churn | Gold) = Gold customers who churned / All Gold customers
+
+# First, get Gold row data using boolean indexing
+# data['Segment'] == 'Gold' creates [True, False, False]
+# data[...] filters to only True rows
+gold_row = data[data['Segment'] == 'Gold']
+
+gold_churned = gold_row['Churned'].values[0]   # Gets 10
+gold_total = gold_row['Total'].values[0]        # Gets 100
+# .values[0] extracts the first (only) value from the resulting array
+
+p_churn_given_gold = gold_churned / gold_total
+# Calculation: 10 / 100 = 0.10
+
+print(f"P(Churn | Gold) = {gold_churned}/{gold_total} = {p_churn_given_gold:.4f}")
+print(f"Interpretation: Among Gold customers, only 10% churn")
+print()
+
+# Let's compare all segments
+print("Churn rate by segment:")
+for segment in ['Gold', 'Silver', 'Bronze']:
+    # Filter data to this segment
+    row = data[data['Segment'] == segment]
+    churned = row['Churned'].values[0]
+    total = row['Total'].values[0]
+    rate = churned / total
+    print(f"  {segment}: {rate:.0%}")
+    # :.0% formats decimal as percentage with 0 decimal places
+
+# Output:
+#   Gold: 10%
+#   Silver: 30%
+#   Bronze: 50%
+
+print()
+
+# ============================================================
+# BAYES' THEOREM IN PYTHON
+# ============================================================
+# P(Gold | Churn) = P(Churn | Gold) × P(Gold) / P(Churn)
+
+# We already calculated:
+# P(Churn | Gold) = 0.10
+# P(Churn) = 0.30
+
+# Calculate P(Gold) = Gold customers / All customers
+p_gold = gold_total / total_customers
+# Calculation: 100 / 300 = 0.333
+
+print("Bayes' Theorem Calculation:")
+print(f"P(Gold) = {gold_total}/{total_customers} = {p_gold:.4f}")
+print(f"P(Churn | Gold) = {p_churn_given_gold:.4f}")
+print(f"P(Churn) = {p_churn:.4f}")
+print()
+
+# Apply Bayes' Theorem
+p_gold_given_churn = (p_churn_given_gold * p_gold) / p_churn
+# Calculation: (0.10 × 0.333) / 0.30 = 0.0333 / 0.30 = 0.111
+
+print(f"P(Gold | Churn) = (P(Churn|Gold) × P(Gold)) / P(Churn)")
+print(f"                = ({p_churn_given_gold:.4f} × {p_gold:.4f}) / {p_churn:.4f}")
+print(f"                = {p_gold_given_churn:.4f}")
+print()
+
+# Verify by direct calculation
+direct_calc = gold_churned / total_churned
+# Among 90 churned, 10 were Gold = 10/90 = 0.111
+print(f"Verification (direct): {gold_churned}/{total_churned} = {direct_calc:.4f}")
 ```
+
+---
+
+# Topic 3: Common Distributions
+
+## What is a Probability Distribution?
+
+A **probability distribution** describes all possible values a random variable can take and how likely each value is.
+
+Think of it as an answer to: "If I repeat this experiment many times, what pattern will the results follow?"
+
+---
+
+## 3.1 The Normal Distribution (Bell Curve)
+
+### Theory
+
+The **Normal distribution** (also called Gaussian distribution) is the most important distribution in statistics. It's symmetric and bell-shaped.
+
+**Why is it so important?**
+1. Many natural phenomena follow it (heights, test scores, measurement errors)
+2. The **Central Limit Theorem** says: averages of large samples follow a normal distribution, regardless of the original data's shape!
+
+**Parameters:**
+- **μ (mu):** Mean - the center of the bell curve
+- **σ (sigma):** Standard deviation - how wide the bell is
+
+**Notation:** $X \sim N(\mu, \sigma^2)$ means "X follows a normal distribution with mean μ and variance σ²"
+
+### The 68-95-99.7 Rule (Empirical Rule)
+
+For any normal distribution:
+- **68%** of values fall within 1 standard deviation of the mean
+- **95%** of values fall within 2 standard deviations
+- **99.7%** of values fall within 3 standard deviations
+
+```
+         99.7% (within 3σ)
+    |---------------------------|
+         95% (within 2σ)
+      |---------------------|
+          68% (within 1σ)
+        |---------------|
+             _____
+            /     \
+           /       \
+          /    |    \
+    ____/     μ      \____
+    |-3σ  -2σ  -1σ  +1σ  +2σ  +3σ|
+```
+
+### Z-Scores: Standardizing Values
+
+A **z-score** tells you how many standard deviations a value is from the mean.
+
+$$z = \frac{x - \mu}{\sigma}$$
+
+- z = 0: value equals the mean
+- z = 1: value is 1 standard deviation above mean
+- z = -2: value is 2 standard deviations below mean
+
+**Why use z-scores?**
+- Compare values from different distributions
+- Look up probabilities in standard normal tables
+
+### Python Code for Normal Distribution
+
+```python
+# ============================================================
+# NORMAL DISTRIBUTION IN PYTHON
+# ============================================================
+
+import numpy as np
+from scipy import stats
+
+# ============================================================
+# UNDERSTANDING scipy.stats
+# ============================================================
+# scipy is a library for scientific computing
+# stats module contains statistical functions and distributions
+#
+# For any distribution, scipy provides:
+#   .pdf(x) = Probability Density Function - height of curve at x
+#   .cdf(x) = Cumulative Distribution Function - P(X ≤ x)
+#   .ppf(p) = Percent Point Function - inverse of CDF, returns x for given probability
+#   .rvs(size=n) = Random Variates - generate n random samples
+
+# ============================================================
+# CREATING A NORMAL DISTRIBUTION
+# ============================================================
+
+# Customer spending follows Normal distribution
+# Mean spending = $50, Standard deviation = $10
+mean = 50
+std = 10
+
+# Create the distribution object
+# loc = location parameter = mean
+# scale = scale parameter = standard deviation
+spending_dist = stats.norm(loc=mean, scale=std)
+
+print("Distribution: X ~ Normal(μ=50, σ=10)")
+print()
+
+# ============================================================
+# PROBABILITY CALCULATIONS WITH CDF
+# ============================================================
+# CDF = Cumulative Distribution Function
+# cdf(x) gives P(X ≤ x) = "probability of getting x or less"
+
+# Question 1: What percentage of customers spend less than $40?
+x1 = 40
+prob_less_40 = spending_dist.cdf(x1)
+
+print(f"Q1: P(X < 40)?")
+print(f"    Answer: {prob_less_40:.4f} = {prob_less_40*100:.2f}%")
+print(f"    Meaning: About 16% of customers spend less than $40")
+print()
+
+# Question 2: What percentage spend MORE than $70?
+# P(X > 70) = 1 - P(X ≤ 70)
+x2 = 70
+prob_more_70 = 1 - spending_dist.cdf(x2)
+
+print(f"Q2: P(X > 70)?")
+print(f"    P(X > 70) = 1 - P(X ≤ 70)")
+print(f"             = 1 - {spending_dist.cdf(x2):.4f}")
+print(f"             = {prob_more_70:.4f} = {prob_more_70*100:.2f}%")
+print()
+
+# Question 3: What percentage spend between $45 and $65?
+# P(45 < X < 65) = P(X < 65) - P(X < 45)
+x_low, x_high = 45, 65
+prob_between = spending_dist.cdf(x_high) - spending_dist.cdf(x_low)
+
+print(f"Q3: P(45 < X < 65)?")
+print(f"    = P(X < 65) - P(X < 45)")
+print(f"    = {spending_dist.cdf(x_high):.4f} - {spending_dist.cdf(x_low):.4f}")
+print(f"    = {prob_between:.4f} = {prob_between*100:.2f}%")
+print()
+
+# ============================================================
+# Z-SCORE CALCULATIONS
+# ============================================================
+
+# Z-score for spending $70:
+x = 70
+z = (x - mean) / std
+# z = (70 - 50) / 10 = 20 / 10 = 2
+
+print(f"Z-Score Calculation:")
+print(f"    For x = ${x}:")
+print(f"    z = (x - μ) / σ")
+print(f"    z = ({x} - {mean}) / {std}")
+print(f"    z = {z}")
+print(f"    Meaning: $70 is 2 standard deviations above the mean")
+print()
+
+# ============================================================
+# INVERSE: FINDING VALUES FROM PROBABILITIES (PPF)
+# ============================================================
+# PPF = Percent Point Function (inverse of CDF)
+# ppf(p) answers: "What value has probability p below it?"
+
+# Question: What is the 90th percentile of spending?
+# (What value has 90% of customers below it?)
+percentile = 0.90
+spending_90 = spending_dist.ppf(percentile)
+
+print(f"90th Percentile:")
+print(f"    The value where 90% spend less: ${spending_90:.2f}")
+print(f"    (Only 10% of customers spend more than ${spending_90:.2f})")
+```
+
+---
+
+## 3.2 The Binomial Distribution
+
+### Theory
+
+The **Binomial distribution** counts the number of "successes" in a fixed number of independent trials, where each trial has only two outcomes (yes/no, success/failure, convert/don't convert).
+
+**When to use Binomial:**
+- Fixed number of trials (n)
+- Each trial is independent
+- Two possible outcomes per trial
+- Same probability of success (p) for each trial
+
+**Examples:**
+- Out of 100 website visitors, how many will convert? (n=100, p=conversion rate)
+- Out of 10 coin flips, how many heads? (n=10, p=0.5)
+
+**Parameters:**
+- **n:** Number of trials
+- **p:** Probability of success on each trial
+
+**Notation:** $X \sim Binomial(n, p)$
+
+**Formulas:**
+- **Expected value (mean):** $E[X] = n \times p$
+- **Variance:** $Var(X) = n \times p \times (1-p)$
+
+### Python Code for Binomial Distribution
+
+```python
+# ============================================================
+# BINOMIAL DISTRIBUTION IN PYTHON
+# ============================================================
+
+from scipy import stats
+from math import comb  # comb(n, k) calculates "n choose k"
+
+# ============================================================
+# SCENARIO
+# ============================================================
+# A store has a 20% conversion rate (20% of visitors buy something)
+# If 10 customers enter, how many will convert?
+
+n = 10       # Number of trials (customers)
+p = 0.20     # Probability of success (conversion rate = 20%)
+
+# Create binomial distribution
+conversion_dist = stats.binom(n=n, p=p)
+
+print(f"Distribution: X ~ Binomial(n={n}, p={p})")
+print(f"This models: number of conversions out of {n} customers")
+print()
+
+# ============================================================
+# EXPECTED VALUE AND STANDARD DEVIATION
+# ============================================================
+
+expected = n * p
+variance = n * p * (1 - p)
+std_dev = variance ** 0.5  # Square root for std dev
+
+print("Expected Value and Spread:")
+print(f"    E[X] = n × p = {n} × {p} = {expected}")
+print(f"    Var(X) = n × p × (1-p) = {n} × {p} × {1-p} = {variance}")
+print(f"    Std Dev = √{variance} = {std_dev:.2f}")
+print(f"    Meaning: We expect about {expected} conversions, give or take {std_dev:.1f}")
+print()
+
+# ============================================================
+# PROBABILITY OF EXACT VALUE (PMF)
+# ============================================================
+# PMF = Probability Mass Function
+# For discrete distributions, pmf(k) = P(X = k)
+
+# Question: What's the probability of EXACTLY 3 conversions?
+k = 3
+prob_exactly_3 = conversion_dist.pmf(k)
+
+print(f"P(X = 3) = {prob_exactly_3:.4f} = {prob_exactly_3*100:.1f}%")
+print(f"Meaning: There's about a 20% chance exactly 3 of 10 customers convert")
+print()
+
+# ============================================================
+# MANUAL CALCULATION (to understand the formula)
+# ============================================================
+# Binomial formula: P(X = k) = C(n,k) × p^k × (1-p)^(n-k)
+#
+# where C(n,k) = "n choose k" = n! / (k! × (n-k)!)
+# This counts the NUMBER OF WAYS to choose k successes from n trials
+
+# For P(X = 3):
+# C(10, 3) = number of ways to have exactly 3 conversions
+# p^3 = probability those 3 convert
+# (1-p)^7 = probability the other 7 don't convert
+
+c_n_k = comb(n, k)           # C(10, 3) = 120
+p_power_k = p ** k           # 0.20^3 = 0.008
+q_power_rest = (1-p) ** (n-k)  # 0.80^7 = 0.2097
+
+manual_prob = c_n_k * p_power_k * q_power_rest
+
+print("Manual Calculation:")
+print(f"    P(X = 3) = C({n},{k}) × p^{k} × (1-p)^{n-k}")
+print(f"            = {c_n_k} × {p_power_k:.6f} × {q_power_rest:.6f}")
+print(f"            = {manual_prob:.4f}")
+print(f"    Matches scipy: {prob_exactly_3:.4f} ✓")
+print()
+
+# ============================================================
+# CUMULATIVE PROBABILITIES (CDF)
+# ============================================================
+# cdf(k) = P(X ≤ k) = probability of k OR FEWER successes
+
+# Question: What's the probability of 2 or fewer conversions?
+prob_at_most_2 = conversion_dist.cdf(2)
+
+print(f"P(X ≤ 2) = {prob_at_most_2:.4f} = {prob_at_most_2*100:.1f}%")
+print(f"This equals: P(0) + P(1) + P(2)")
+# Verify:
+verify = conversion_dist.pmf(0) + conversion_dist.pmf(1) + conversion_dist.pmf(2)
+print(f"Verification: {verify:.4f}")
+print()
+
+# Question: What's the probability of 4 OR MORE conversions?
+# P(X ≥ 4) = 1 - P(X ≤ 3) = 1 - P(X < 4)
+prob_at_least_4 = 1 - conversion_dist.cdf(3)
+
+print(f"P(X ≥ 4) = 1 - P(X ≤ 3) = 1 - {conversion_dist.cdf(3):.4f} = {prob_at_least_4:.4f}")
+```
+
+---
+
+# Topic 4: Hypothesis Testing
+
+## What is Hypothesis Testing? (Theory Deep Dive)
+
+**Hypothesis testing** is a formal framework for making decisions based on data. You have a question ("Is this new design better?"), collect data, and use statistics to answer it.
+
+### The Logic of Hypothesis Testing
+
+Think of it like a courtroom trial:
+- **Null Hypothesis (H₀):** The defendant is innocent (nothing special happening)
+- **Alternative Hypothesis (H₁):** The defendant is guilty (there IS an effect)
+- **Evidence:** The data you collect
+- **Verdict:** Either "reject H₀" (guilty) or "fail to reject H₀" (not proven guilty)
+
+**Key insight:** We never "prove" H₀ is true. We only determine if there's enough evidence against it.
+
+### Key Terminology
+
+| Term | Definition | Analogy |
+|------|------------|---------|
+| **H₀ (Null)** | Default assumption: no effect, no difference | "Innocent until proven guilty" |
+| **H₁ (Alternative)** | What we're trying to prove: there IS an effect | "The defendant is guilty" |
+| **α (alpha)** | Significance level, typically 0.05 (5%) | How much "reasonable doubt" we allow |
+| **p-value** | Probability of seeing our data if H₀ is true | How surprising is the evidence? |
+| **Type I Error** | Rejecting H₀ when it's actually true | Convicting an innocent person |
+| **Type II Error** | Failing to reject H₀ when H₁ is true | Letting a guilty person go free |
+| **Power** | Probability of correctly rejecting a false H₀ | Ability to catch guilty people |
+
+### The p-value Explained
+
+**What it is:** The probability of observing data at least as extreme as yours, assuming H₀ is true.
+
+**What it is NOT:** The probability that H₀ is true! (Common mistake!)
+
+**Example:** 
+- You flip a coin 20 times and get 15 heads.
+- H₀: The coin is fair (P=0.5)
+- p-value = probability of getting 15 or more heads (or 5 or fewer) with a fair coin
+- p-value answers: "If the coin IS fair, how likely is this result?"
+- If p-value is tiny (like 0.02), this result would be very surprising for a fair coin, so we doubt H₀.
+
+### Decision Rule
+
+```
+If p-value < α (typically 0.05):
+    Reject H₀
+    Conclusion: Evidence suggests H₁ is true
+    
+If p-value ≥ α:
+    Fail to reject H₀
+    Conclusion: Not enough evidence to reject H₀
+                (This doesn't mean H₀ is true!)
+```
+
+### One-tailed vs Two-tailed Tests
+
+- **Two-tailed (most common):** Testing for "different from" (greater OR less)
+  - H₁: μ ≠ μ₀
+  - Example: "Is the new mean different from 50?"
+  
+- **One-tailed:** Testing for a specific direction
+  - H₁: μ > μ₀ OR H₁: μ < μ₀
+  - Example: "Is the new mean GREATER than 50?"
+
+### The t-test Explained
+
+The **t-test** compares means. It answers: "Is the difference in means statistically significant?"
+
+**t-statistic formula (one-sample):**
+$$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}}$$
+
+Where:
+- $\bar{x}$ = sample mean
+- $\mu_0$ = hypothesized mean (from H₀)
+- $s$ = sample standard deviation
+- $n$ = sample size
+- $s / \sqrt{n}$ = **standard error** (how much sample mean varies)
+
+**Interpretation:** t measures how many "standard errors" the sample mean is from the hypothesized mean.
+
+- t ≈ 0: sample mean is close to hypothesized mean
+- |t| large: sample mean is far from hypothesized mean (more evidence against H₀)
+
+---
+
+## 4.1 Python Code for Hypothesis Testing
+
+```python
+# ============================================================
+# HYPOTHESIS TESTING IN PYTHON
+# ============================================================
+
+import numpy as np
+from scipy import stats
+
+# ============================================================
+# SCENARIO: ONE-SAMPLE T-TEST
+# ============================================================
+# A store claims their average transaction is $50.
+# We collect a sample of 25 transactions and want to test this claim.
+
+# Set random seed for reproducibility
+# (so you get the same "random" numbers every time)
+np.random.seed(42)
+
+# Generate sample data: actually comes from mean=53, std=12
+# But we're pretending we don't know this - testing if mean = 50
+sample = np.random.normal(loc=53, scale=12, size=25)
+
+# ============================================================
+# STEP 1: EXAMINE THE SAMPLE DATA
+# ============================================================
+
+sample_mean = sample.mean()
+sample_std = sample.std(ddof=1)  # ddof=1 for sample std dev
+n = len(sample)
+
+print("=" * 50)
+print("STEP 1: SAMPLE STATISTICS")
+print("=" * 50)
+print(f"Sample size (n): {n}")
+print(f"Sample mean (x̄): {sample_mean:.2f}")
+print(f"Sample std dev (s): {sample_std:.2f}")
+print()
+
+# ============================================================
+# STEP 2: STATE THE HYPOTHESES
+# ============================================================
+
+hypothesized_mean = 50  # The value we're testing against
+
+print("=" * 50)
+print("STEP 2: STATE HYPOTHESES")
+print("=" * 50)
+print("H₀ (Null): μ = 50 (mean equals $50)")
+print("H₁ (Alt):  μ ≠ 50 (mean is different from $50)")
+print("This is a TWO-TAILED test (testing for 'different', not 'greater' or 'less')")
+print(f"Significance level: α = 0.05")
+print()
+
+# ============================================================
+# STEP 3: CALCULATE THE T-STATISTIC (manually)
+# ============================================================
+
+# Standard Error = How much the sample mean varies
+# SE = s / √n
+standard_error = sample_std / np.sqrt(n)
+
+# t-statistic = How far is sample mean from hypothesized mean,
+#               measured in units of standard error
+t_statistic = (sample_mean - hypothesized_mean) / standard_error
+
+# Degrees of freedom (for t-distribution)
+df = n - 1
+
+print("=" * 50)
+print("STEP 3: CALCULATE T-STATISTIC")
+print("=" * 50)
+print(f"Standard Error (SE) = s / √n")
+print(f"                    = {sample_std:.2f} / √{n}")
+print(f"                    = {sample_std:.2f} / {np.sqrt(n):.2f}")
+print(f"                    = {standard_error:.4f}")
+print()
+print(f"t-statistic = (x̄ - μ₀) / SE")
+print(f"            = ({sample_mean:.2f} - {hypothesized_mean}) / {standard_error:.4f}")
+print(f"            = {sample_mean - hypothesized_mean:.2f} / {standard_error:.4f}")
+print(f"            = {t_statistic:.4f}")
+print()
+print(f"Degrees of freedom = n - 1 = {n} - 1 = {df}")
+print()
+
+# ============================================================
+# STEP 4: CALCULATE THE P-VALUE
+# ============================================================
+
+# For two-tailed test:
+# p-value = 2 × P(T > |t|)
+# This accounts for extreme values in BOTH tails
+
+# stats.t.cdf gives cumulative probability P(T ≤ t)
+# We want P(T > |t|) = 1 - P(T ≤ |t|)
+p_value = 2 * (1 - stats.t.cdf(abs(t_statistic), df))
+
+print("=" * 50)
+print("STEP 4: CALCULATE P-VALUE")
+print("=" * 50)
+print(f"For two-tailed test:")
+print(f"p-value = 2 × P(T > |t|)")
+print(f"        = 2 × P(T > {abs(t_statistic):.4f})")
+print(f"        = 2 × {1 - stats.t.cdf(abs(t_statistic), df):.4f}")
+print(f"        = {p_value:.4f}")
+print()
+
+# ============================================================
+# STEP 5: MAKE A DECISION
+# ============================================================
+
+alpha = 0.05
+
+print("=" * 50)
+print("STEP 5: MAKE A DECISION")
+print("=" * 50)
+print(f"Compare p-value ({p_value:.4f}) to α ({alpha})")
+print()
+
+if p_value < alpha:
+    print(f"Since {p_value:.4f} < {alpha}:")
+    print("→ REJECT H₀")
+    print()
+    print("Conclusion: The sample provides evidence that the true mean")
+    print("            is DIFFERENT from $50 (statistically significant).")
+else:
+    print(f"Since {p_value:.4f} ≥ {alpha}:")
+    print("→ FAIL TO REJECT H₀")
+    print()
+    print("Conclusion: The sample does NOT provide strong enough evidence")
+    print("            to conclude the mean differs from $50.")
+
+print()
+
+# ============================================================
+# VERIFICATION: USING SCIPY'S BUILT-IN FUNCTION
+# ============================================================
+
+# stats.ttest_1samp performs a one-sample t-test automatically
+t_scipy, p_scipy = stats.ttest_1samp(sample, hypothesized_mean)
+
+print("=" * 50)
+print("VERIFICATION WITH scipy.stats.ttest_1samp()")
+print("=" * 50)
+print(f"t-statistic: {t_scipy:.4f} (manual: {t_statistic:.4f})")
+print(f"p-value: {p_scipy:.4f} (manual: {p_value:.4f})")
+```
+
+---
+
+# Topic 5: A/B Testing Framework
+
+## What is A/B Testing? (Theory Deep Dive)
+
+**A/B testing** (also called split testing) is an experiment where you compare two versions:
+- **A (Control):** The current version
+- **B (Treatment):** The new version you want to test
+
+You randomly assign users to either A or B, measure outcomes, then use statistics to determine if B is better.
+
+### The A/B Testing Process
+
+```
+1. HYPOTHESIS: "The new checkout button will increase conversion rate"
+
+2. METRICS: Define what you'll measure (conversion rate)
+
+3. SAMPLE SIZE: Calculate how many users you need
+
+4. RANDOMIZE: Randomly assign users to A or B
+
+5. RUN TEST: Let it run without peeking!
+
+6. ANALYZE: Use statistical test (usually z-test for proportions)
+
+7. DECIDE: If significant and meaningful, roll out B
+```
+
+### Sample Size Calculation
+
+**Why it matters:** Too few users → can't detect real effects. Too many → waste of time/resources.
+
+**Key inputs:**
+- **Baseline rate:** Current conversion rate (e.g., 10%)
+- **MDE (Minimum Detectable Effect):** Smallest improvement worth detecting (e.g., 2% absolute)
+- **Significance level (α):** Usually 0.05
+- **Power (1-β):** Usually 0.80 (80% chance of detecting a real effect)
 
 ---
 
 ## Quick Memorization List
 
 1. **Mean vs Median:** Mean for symmetric data; Median for skewed/outliers
-2. **Standard Deviation:** ~68% within 1 std, ~95% within 2 std (for normal)
-3. **z-score:** z = (x - μ) / σ — how many std devs from mean
-4. **p-value:** P(data this extreme | H₀ true) — NOT P(H₀ true | data)
-5. **Type I Error:** False positive (α) — rejecting true H₀
-6. **Type II Error:** False negative (β) — failing to reject false H₀
-7. **Power:** 1 - β — ability to detect true effect
-8. **Bayes:** P(A|B) = P(B|A) × P(A) / P(B)
-9. **Binomial:** n trials, p success prob, count successes
-10. **Poisson:** Count of events in fixed interval, λ = mean rate
-11. **Correlation range:** -1 (perfect negative) to +1 (perfect positive)
-12. **A/B sample size:** Larger effect → smaller n needed; Higher power → larger n needed
+2. **Standard Deviation:** Typical distance from the mean
+3. **Variance:** Average squared distance from mean (std² = variance)
+4. **z-score:** z = (x - μ) / σ — how many std devs from mean
+5. **p-value:** P(data this extreme | H₀ true) — NOT P(H₀ true | data)!
+6. **Type I Error (α):** False positive — rejecting true H₀
+7. **Type II Error (β):** False negative — failing to reject false H₀
+8. **Power:** 1 - β — ability to detect true effect
+9. **Bayes:** P(A|B) = P(B|A) × P(A) / P(B)
+10. **Normal:** 68% within 1σ, 95% within 2σ, 99.7% within 3σ
+11. **Binomial:** E[X] = n×p, Var = n×p×(1-p)
+12. **Correlation ≠ Causation:** Need experiments to prove causation
 
 ---
 
@@ -987,13 +1456,20 @@ print("To establish causation: run incrementality test (A/B on marketing)")
 > "When would you use median instead of mean?"
 
 **Model Answer:**
-"I use median when data is skewed or has outliers. For example, customer lifetime value often has a few very high-value customers that inflate the mean. Median gives the 'typical' customer value that's more representative. I also check if mean ≈ median; a big difference signals skewness."
+"I use median when data is skewed or has outliers. For example, customer lifetime value often has a few very high-value customers that inflate the mean. Median gives the 'typical' customer value that's more representative. In practice, I check if mean ≈ median; a big difference signals skewness."
 
 ### Question 2 (Calculation): Probability
-> "60% of customers buy dairy. 40% of dairy buyers also buy bakery. What's P(Bakery | Dairy)?"
+> "60% of customers buy dairy. 40% of dairy buyers also buy bakery. What's P(Dairy AND Bakery)?"
 
 **Model Answer:**
-"P(Bakery | Dairy) = 0.40 or 40%. This is given directly—40% of dairy buyers also buy bakery. If asked P(Dairy AND Bakery), that would be P(Dairy) × P(Bakery|Dairy) = 0.60 × 0.40 = 0.24 or 24%."
+```
+P(Dairy) = 0.60
+P(Bakery | Dairy) = 0.40
+
+P(Dairy AND Bakery) = P(Dairy) × P(Bakery | Dairy)
+                    = 0.60 × 0.40
+                    = 0.24 or 24%
+```
 
 ### Question 3 (Coding): Hypothesis Test
 > "Write code to test if sample mean differs significantly from 100."
@@ -1001,8 +1477,6 @@ print("To establish causation: run incrementality test (A/B on marketing)")
 **Model Answer:**
 ```python
 from scipy import stats
-import numpy as np
-
 sample = [98, 102, 105, 97, 101, 99, 103, 100, 96, 104]
 t_stat, p_value = stats.ttest_1samp(sample, 100)
 print(f"t = {t_stat:.3f}, p = {p_value:.3f}")
@@ -1013,36 +1487,11 @@ print(f"t = {t_stat:.3f}, p = {p_value:.3f}")
 > "Your A/B test shows Treatment beats Control with p=0.08. What do you recommend?"
 
 **Model Answer:**
-"At p=0.08 with α=0.05, we technically fail to reject H₀. But before concluding 'no effect':
-1. Check the effect size—if it's large and practically meaningful, we might need more data
-2. Calculate required sample size for the observed effect
-3. Consider if we can extend the test
-4. If effect is small (e.g., 1% lift) AND p=0.08, likely no meaningful impact
-5. Business context matters: high-risk change → stick with significant results; low-risk → might ship anyway with monitoring"
-
-### Question 5 (Conceptual): Correlation
-> "You find customer age correlates with spending (r=0.6). Does age cause higher spending?"
-
-**Model Answer:**
-"No, correlation doesn't prove causation. Possible explanations:
-1. Age → Spending (direct cause): older people have more income
-2. Confounders: tenure with company, life stage, income level
-3. Reverse causation: unlikely here, but high spenders don't become older faster
-
-To establish causation, I'd need an experiment (impractical for age) or use causal inference techniques like matching customers by income and comparing age groups."
-
----
-
-## "If You Only Have 60 Minutes" Sprint Plan
-
-| Time | Activity |
-|------|----------|
-| 0-10 min | Calculate mean, median, std on paper (5 numbers) |
-| 10-20 min | Bayes theorem problem: P(Disease \| Positive Test) |
-| 20-35 min | Code a one-sample t-test and interpret results |
-| 35-45 min | Practice A/B test sample size calculation |
-| 45-55 min | Review mock interview Q&A |
-| 55-60 min | Memorize 12-item list |
+"At p=0.08 > α=0.05, we technically fail to reject H₀. But before concluding:
+1. Check effect size—is the difference practically meaningful?
+2. Consider extending the test for more data
+3. If effect is small AND p=0.08, likely no meaningful impact
+4. Business context matters: high-risk change → stick with significant results"
 
 ---
 
@@ -1052,53 +1501,43 @@ To establish causation, I'd need an experiment (impractical for age) or use caus
 === STATISTICS CHEAT SHEET ===
 
 CENTRAL TENDENCY
-  Mean: sum/count (affected by outliers)
-  Median: middle value (robust to outliers)
-  Mode: most frequent value
+  Mean = sum/count (sensitive to outliers)
+  Median = middle value (robust to outliers)
+  Mode = most frequent value
 
 SPREAD
-  Variance: avg squared deviation from mean
-  Std Dev: √variance (same units as data)
-  IQR: Q3 - Q1 (middle 50% spread)
-  Outliers: < Q1-1.5*IQR or > Q3+1.5*IQR
+  Variance = avg squared distance from mean
+  Std Dev = √variance (same units as data)
+  IQR = Q3 - Q1 (middle 50% spread)
 
-PROBABILITY RULES
+PROBABILITY
   P(A or B) = P(A) + P(B) - P(A and B)
   P(A and B) = P(A) × P(B|A)
   P(A|B) = P(A and B) / P(B)
   Bayes: P(A|B) = P(B|A) × P(A) / P(B)
 
 DISTRIBUTIONS
-  Normal: continuous, symmetric, mean=median
-    - 68-95-99.7 rule for 1-2-3 std devs
-  Binomial: X = # successes in n trials
-    - E[X] = n×p, Var = n×p×(1-p)
-  Poisson: X = # events in interval
-    - E[X] = λ = Var(X)
+  Normal: X ~ N(μ, σ²)
+    68-95-99.7 rule for 1-2-3 std devs
+    z = (x - μ) / σ
+  Binomial: X ~ Binom(n, p)
+    E[X] = np, Var = np(1-p)
 
 HYPOTHESIS TESTING
   H₀: null (no effect)
   H₁: alternative (there IS effect)
-  α = P(Type I error) = false positive rate
-  β = P(Type II error), Power = 1-β
   p-value < α → reject H₀
-  
-  t-test: t = (x̄ - μ₀) / (s/√n)
-  df = n-1 (one-sample)
+  t = (x̄ - μ₀) / (s/√n)
 
-A/B TESTING
-  1. Define metric and hypothesis
-  2. Calculate sample size (baseline, MDE, power)
-  3. Run test (don't peek!)
-  4. Analyze with z-test or t-test
-  5. Consider effect size, not just p-value
-
-CORRELATION
-  Pearson r: -1 to +1
-  r² = proportion of variance explained
-  CORRELATION ≠ CAUSATION
+SCIPY FUNCTIONS
+  stats.norm(loc, scale) - normal dist
+  stats.binom(n, p) - binomial dist
+  .cdf(x) - P(X ≤ x)
+  .ppf(p) - value at percentile p
+  .pmf(k) - P(X = k) for discrete
+  stats.ttest_1samp(data, value) - t-test
 ```
 
 ---
 
-*Day 3 Complete. Statistics is the language of data science—speak it fluently and you'll ace any quantitative interview question.*
+*Day 3 Complete. Statistics provides the language for data-driven decisions—understand these fundamentals deeply.*
